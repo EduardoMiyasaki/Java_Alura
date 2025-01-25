@@ -1,20 +1,20 @@
+package br.com.alura.screenmatch.principal;
+
 import br.com.alura.screenmatch.calculo.CalculradoraTempo;
 import br.com.alura.screenmatch.calculo.Recomendacao;
 import br.com.alura.screenmatch.model.Episodio;
 import br.com.alura.screenmatch.model.Movie;
 import br.com.alura.screenmatch.model.Serie;
 
-import java.lang.module.FindException;
 import java.util.ArrayList;
 import java.util.List;
 
 public class Main {
 
     public static void main(String[] args) {
-        Movie favorito = new Movie();
 
-        favorito.setNome("The Matrix");
-        favorito.setAnoDeLancamento(1999);
+        Movie favorito = new Movie("The Matrix", 1999);
+
         favorito.setDuracaoEmMinutos(135);
         favorito.setIncluidoNoPlano(true);
 
@@ -23,10 +23,8 @@ public class Main {
         favorito.avalia(8);
         favorito.avalia(9);
 
-        Movie filme1 = new Movie();
+        Movie filme1 = new Movie("Mad max" , 2023);
 
-        filme1.setNome("Mad max");
-        filme1.setAnoDeLancamento(2023);
         filme1.setDuracaoEmMinutos(190);
         filme1.setIncluidoNoPlano(true);
 
@@ -37,10 +35,8 @@ public class Main {
 
         System.out.println("Média de avaliações do filme: " + favorito.pegaMedia());
 
-        Serie serie = new Serie();
+        Serie serie = new Serie("Lost",2000);
 
-        serie.setNome("Lost");
-        serie.setAnoDeLancamento(2000);
         serie.exibeFichaTecnica();
         serie.setTemporada(10);
         serie.setEpisodiosPorTemporada(10);
@@ -67,10 +63,8 @@ public class Main {
 
         filtro.filtrar(episodio);
 
-        var filmeDoPaulo = new Movie();
-        filmeDoPaulo.setNome("DogVille");
+        var filmeDoPaulo = new Movie("DogVille" , 2003);
         filmeDoPaulo.setDuracaoEmMinutos(200);
-        filmeDoPaulo.setAnoDeLancamento(2003);
         filmeDoPaulo.avalia(10);
 
         // poderia utilizar o var no começo
@@ -86,8 +80,7 @@ public class Main {
         System.out.println(listaFilmes);
         System.out.println("ToString do filme: " + listaFilmes.get(0).toString());
 
-
-
+        Movie filme10 = new Movie("O" , 1750);
 
 
         // Testando alguns comandos por si só!!!!!!!!!!

@@ -4,6 +4,11 @@ import br.com.alura.screenmatch.calculo.Classificacao;
 
 public class Serie extends Titulo implements Classificacao {
 
+    public Serie(String nome, int anoDeLancamento) {
+        // Quando eu instancia uma série ele irá chamar o construtor da mãe/Super
+        super(nome, anoDeLancamento);
+    }
+
     private int temporada;
     private int episodiosPorTemporada;
     private boolean ativa;
@@ -49,9 +54,14 @@ public class Serie extends Titulo implements Classificacao {
 
     @Override
     public int getClassificao() {
-        if(totalVisu >= 1000){
+        if (totalVisu >= 1000) {
             return 5;
         }
         return 2;
+    }
+
+    @Override
+    public String toString() {
+        return "Nome da Série:" + this.getNome() + " (" + this.getAnoDeLancamento() + ")";
     }
 }

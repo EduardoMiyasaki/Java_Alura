@@ -9,11 +9,21 @@ public class Titulo {
     private double somaDasAvaliacoes;
     private int totalDeAvaliacoes;
 
+    public Titulo(String nome, int anoDeLancamento) {
+
+        if (anoDeLancamento > 1900 && anoDeLancamento <= 2025) {
+            this.nome = nome;
+            this.anoDeLancamento = anoDeLancamento;
+        } else {
+            System.out.println("erro!!!! Nenhuma valor foi atribuído");
+        }
+    }
+
     public void exibeFichaTecnica() {
-        System.out.println("Nome do filme: " +nome);
-        System.out.println("Ano de lançamento: " +anoDeLancamento);
-        System.out.println("Duração em minutos: " +duracaoEmMinutos);
-        System.out.println("Incluído no plano: " +incluidoNoPlano);
+        System.out.println("Nome do filme: " + nome);
+        System.out.println("Ano de lançamento: " + anoDeLancamento);
+        System.out.println("Duração em minutos: " + duracaoEmMinutos);
+        System.out.println("Incluído no plano: " + incluidoNoPlano);
     }
 
     public void avalia(double nota) {

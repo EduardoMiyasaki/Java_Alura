@@ -21,6 +21,7 @@ public class CalculradoraTempo {
 
     // Tem como passar a mãe como paramêtro e seus filhos poderam ser adicionados neste paramêtro
     public void incluir(Titulo titulo){
+        
         this.tempoTotal += titulo.getDuracaoEmMinutos();
     }
 }
