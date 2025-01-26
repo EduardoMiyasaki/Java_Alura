@@ -1,10 +1,11 @@
 package br.com.alura.screenmatch.principal;
 
+import br.com.alura.screenmatch.comparadores.ComparadorAno;
 import br.com.alura.screenmatch.model.Movie;
 import br.com.alura.screenmatch.model.Serie;
 import br.com.alura.screenmatch.model.Titulo;
 
-import java.util.ArrayList;
+import java.util.*;
 
 public class MainComListas {
 
@@ -30,7 +31,7 @@ public class MainComListas {
         // do mesmo jeito que um metódo pode ter como parametro a classe mãe e aceitar as filhas
         // uma lista também :)
 
-        ArrayList<Titulo> lista = new ArrayList<>();
+        List<Titulo> lista = new LinkedList<>();
 
         lista.add(filmeDoPaulo);
         lista.add(filme1);
@@ -73,6 +74,46 @@ public class MainComListas {
             }
 
         });
+
+        ArrayList<String> buscaPorArtista = new ArrayList<>();
+
+        buscaPorArtista.add("Adam sandler");
+        buscaPorArtista.add("Eduardo Miyasaki");
+        buscaPorArtista.add("Cléber machado");
+
+        System.out.println(buscaPorArtista);
+
+        // Ordendando em ordem alfabética
+        Collections.sort(buscaPorArtista);
+        System.out.println("Depois de ordernar ficou assim");
+        System.out.println(buscaPorArtista);
+
+        // Antes da ordenação
+        System.out.println(lista);
+
+        // Não da para ordenar desta maneira pois falta um critério de avaliação especificado
+        // Não é uma String para ordenar de maneira alfabética nem número do menor para o maior ou vice versa
+
+        // Para fazer desta maneira temos que Reescrever o método de comparação da interface Comparable
+
+        System.out.println("Comparando pela ordem alfabética");
+        Collections.sort(lista);
+        System.out.println(lista);
+
+        // Comparando de acordo com a ordem da lançamento menor para o Maior
+        ComparadorAno comparadorAno = new ComparadorAno();
+        lista.sort(comparadorAno);
+
+        // outra maneira
+        // Collections.sort(lista , comparadorAno);
+        System.out.println("Ordenado pelo ano de lançamento");
+        System.out.println("----------------------");
+        System.out.println(lista);
+
+        // Maneira mais moderna
+        lista.sort(Comparator.comparing(Titulo::getNome));
+        System.out.println(lista);
+
 
     }
 }
