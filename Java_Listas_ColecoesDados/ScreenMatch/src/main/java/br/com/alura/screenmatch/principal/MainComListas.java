@@ -75,7 +75,7 @@ public class MainComListas {
 
         });
 
-        ArrayList<String> buscaPorArtista = new ArrayList<>();
+        List<String> buscaPorArtista = new ArrayList<>();
 
         buscaPorArtista.add("Adam sandler");
         buscaPorArtista.add("Eduardo Miyasaki");
@@ -91,11 +91,6 @@ public class MainComListas {
         // Antes da ordenação
         System.out.println(lista);
 
-        // Não da para ordenar desta maneira pois falta um critério de avaliação especificado
-        // Não é uma String para ordenar de maneira alfabética nem número do menor para o maior ou vice versa
-
-        // Para fazer desta maneira temos que Reescrever o método de comparação da interface Comparable
-
         System.out.println("Comparando pela ordem alfabética");
         Collections.sort(lista);
         System.out.println(lista);
@@ -105,7 +100,7 @@ public class MainComListas {
         lista.sort(comparadorAno);
 
         // outra maneira
-        // Collections.sort(lista , comparadorAno);
+        Collections.sort(lista , comparadorAno);
         System.out.println("Ordenado pelo ano de lançamento");
         System.out.println("----------------------");
         System.out.println(lista);

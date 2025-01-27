@@ -5,15 +5,21 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.util.Scanner;
 
 public class Main {
 
     public static void main(String[] args) throws IOException, InterruptedException {
 
+        Scanner leitura = new Scanner(System.in);
+        System.out.println("Digite o nome da criptomoeda para a cotação (por exemplo, bitcoin): ");
+        var criptoNome = leitura.nextLine();
+
         HttpClient client = HttpClient.newHttpClient();
 
+        String endereco =  "https://api.coingecko.com/api/v3/simple/price?ids=" + criptoNome + "&vs_currencies=usd";
         HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create("https://api.coingecko.com/api/v3/ping?x_cg_demo_api_key=CG-LN8ZpSx3t9udCtQDxnNHmJTb"))
+                .uri(URI.create(endereco))
                 .build();
 
         HttpResponse<String> response = client.send(request , HttpResponse.BodyHandlers.ofString());

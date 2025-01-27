@@ -9,12 +9,6 @@ public class ComparadorAno implements Comparator<Titulo> {
 
     @Override
     public int compare(Titulo titulo1, Titulo titulo2) {
-        if (titulo1.getAnoDeLancamento() > titulo2.getAnoDeLancamento()) {
-            return 1;
-        }
-        else if (titulo1.getAnoDeLancamento() < titulo2.getAnoDeLancamento()) {
-            return -1;
-        }
-        return 0;
+       return Integer.valueOf(titulo1.getAnoDeLancamento()).compareTo(Integer.valueOf(titulo2.getAnoDeLancamento()));
     }
 }
