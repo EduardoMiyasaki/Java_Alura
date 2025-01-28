@@ -1,0 +1,29 @@
+[
+  {
+    "CEP": "01411-001",
+    "rua": "Rua Padre João Manuel",
+    "bairro": "Cerqueira César",
+    "cidade": "São Paulo",
+    "uf": "SP",
+    "estado": "São Paulo",
+    "regiao": "Sudeste"
+  },
+  {
+    "CEP": "01414-001",
+    "rua": "Rua Haddock Lobo",
+    "bairro": "Cerqueira César",
+    "cidade": "São Paulo",
+    "uf": "SP",
+    "estado": "São Paulo",
+    "regiao": "Sudeste"
+  },
+  {
+    "CEP": "08573-150",
+    "rua": "Rua Natal",
+    "bairro": "Vila Virgínia",
+    "cidade": "Itaquaquecetuba",
+    "uf": "SP",
+    "estado": "São Paulo",
+    "regiao": "Sudeste"
+  }
+]
