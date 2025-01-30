@@ -30,6 +30,7 @@ public class EnderecoDAO {
             preparedStatement.setString(7, enderecoDTO.regiao());
 
             preparedStatement.execute();
+            connection.close();
         } catch (SQLException e) {
             throw new RuntimeException(e.getMessage());
         }
@@ -54,8 +55,11 @@ public class EnderecoDAO {
 
                 Endereco endereco = new Endereco(new EnderecoDTO(cep, logradouro, bairro, cidade, uf, estado, regiao));
                 enderecos.add(endereco);
-
             }
+
+            preparedStatement.close();
+            resultSet.close();
+            connection.close();
             return enderecos;
         } catch (SQLException e) {
             throw new RuntimeException(e.getMessage());
@@ -79,6 +83,9 @@ public class EnderecoDAO {
                 String estado = resultSet.getString(6);
                 String regiao = resultSet.getString(7);
 
+                connection.close();
+                resultSet.close();
+                preparedStatement.close();
                 return new Endereco(new EnderecoDTO(cep, logradouro, bairro, cidade, uf, estado, regiao));
             }
 
