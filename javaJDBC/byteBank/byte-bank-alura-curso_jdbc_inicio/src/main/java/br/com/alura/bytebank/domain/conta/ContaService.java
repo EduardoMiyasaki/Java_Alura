@@ -20,21 +20,31 @@ public class ContaService {
         this.connection = new ConnectionFactory();
     }
 
-    private Set<Conta> contas = new HashSet<>();
-
     public Set<Conta> listarContasAbertas() {
         Connection connection = this.connection.openConnection();
         return new ContaDAO(connection).getAllContas();
+
     }
 
     public Conta listarConta(int numero) {
         Connection connection1 = this.connection.openConnection();
-        return new ContaDAO(connection1).getOneConta(numero);
+        Conta conta = new ContaDAO(connection1).getOneConta(numero);
+        if (conta == null) {
+            throw new RegraDeNegocioException("Não existe conta cadatrada com o número: " + numero);
+        }
+
+        return conta;
     }
 
     public BigDecimal consultarSaldo(Integer numeroDaConta) {
-        var conta = buscarContaPorNumero(numeroDaConta);
-        return conta.getSaldo();
+        var conexao = connection.openConnection();
+        var conta = listarConta(numeroDaConta);
+
+        Conta conta1 = new ContaDAO(conexao).getOneConta(conta.getNumero());
+        if (!conta1.getEstaAtiva()) {
+            throw new RegraDeNegocioException("Conta desativida");
+        }
+        return conta1.getSaldo();
     }
 
     public void abrir(DadosAberturaConta dadosDaConta) {
@@ -44,7 +54,8 @@ public class ContaService {
     }
 
     public void realizarSaque(Integer numeroDaConta, BigDecimal valor) {
-        var conta = buscarContaPorNumero(numeroDaConta);
+        Connection connection = this.connection.openConnection();
+        var conta = listarConta(numeroDaConta);
         if (valor.compareTo(BigDecimal.ZERO) <= 0) {
             throw new RegraDeNegocioException("Valor do saque deve ser superior a zero!");
         }
@@ -53,32 +64,58 @@ public class ContaService {
             throw new RegraDeNegocioException("Saldo insuficiente!");
         }
 
-        conta.sacar(valor);
+        if (!conta.getEstaAtiva()) {
+            throw new RegraDeNegocioException("Conta desativada");
+        }
+
+        new ContaDAO(connection).sacar(numeroDaConta, valor);
     }
 
     public void realizarDeposito(Integer numeroDaConta, BigDecimal valor) {
-        var conta = buscarContaPorNumero(numeroDaConta);
+        Connection connection = this.connection.openConnection();
+        var conta = listarConta(numeroDaConta);
+
         if (valor.compareTo(BigDecimal.ZERO) <= 0) {
             throw new RegraDeNegocioException("Valor do deposito deve ser superior a zero!");
         }
+        if (!conta.getEstaAtiva()) {
+            throw new RegraDeNegocioException("Conta desativada");
+        }
+        new ContaDAO(connection).depositar(conta.getNumero(), valor);
+    }
 
-        conta.depositar(valor);
+    public void transferirValor(int numeroContaOrigem, int numeroContaDestino, BigDecimal valor) {
+        this.realizarSaque(numeroContaOrigem, valor);
+        this.realizarDeposito(numeroContaDestino, valor);
+
     }
 
     public void encerrar(Integer numeroDaConta) {
-        var conta = buscarContaPorNumero(numeroDaConta);
-        if (conta.possuiSaldo()) {
+        Connection conexao = connection.openConnection();
+        var conta = listarConta(numeroDaConta);
+
+        if (conta.getSaldo().compareTo(BigDecimal.ZERO) > 0) {
             throw new RegraDeNegocioException("Conta não pode ser encerrada pois ainda possui saldo!");
         }
 
-        contas.remove(conta);
+        new ContaDAO(conexao).excluirConta(numeroDaConta);
     }
 
-    private Conta buscarContaPorNumero(Integer numero) {
-        return contas
-                .stream()
-                .filter(c -> c.getNumero() == numero)
-                .findFirst()
-                .orElseThrow(() -> new RegraDeNegocioException("Não existe conta cadastrada com esse número!"));
+    public void desativarConta(int numeroConta) {
+        Connection conexao = connection.openConnection();
+        var conta = listarConta(numeroConta);
+
+        new ContaDAO(conexao).desativarConta(conta.getNumero());
     }
+
+    public void reativarConta(int numeroConta) {
+        Connection conexao = connection.openConnection();
+        var conta = listarConta(numeroConta);
+
+        new ContaDAO(conexao).reativarConta(conta.getNumero());
+    }
+
 }
+
+
+

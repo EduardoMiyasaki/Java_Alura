@@ -14,7 +14,7 @@ public class BytebankApplication {
 
     public static void main(String[] args) {
         var opcao = exibirMenu();
-        while (opcao != 8) {
+        while (opcao != 10) {
             try {
                 switch (opcao) {
                     case 1:
@@ -38,9 +38,15 @@ public class BytebankApplication {
                     case 7:
                         listarConta();
                         break;
+                    case 8:
+                        trasferirValor();
+                        break;
+                    case 9:
+                        reativarConta();
+                        break;
                 }
             } catch (RegraDeNegocioException e) {
-                System.out.println("Erro: " +e.getMessage());
+                System.out.println("Erro: " + e.getMessage());
                 System.out.println("Pressione qualquer tecla e de ENTER para voltar ao menu");
                 teclado.next();
             }
@@ -60,7 +66,9 @@ public class BytebankApplication {
                 5 - Realizar saque em uma conta
                 6 - Realizar depósito em uma conta
                 7 - Lista conta
-                8 - Sair
+                8 - Realizar transferência
+                9 - Reativar Conta
+                10 - Sair
                 """);
         return teclado.nextInt();
     }
@@ -97,7 +105,7 @@ public class BytebankApplication {
         System.out.println("Digite o email do cliente:");
         var email = teclado.next();
 
-            service.abrir(new DadosAberturaConta(numeroDaConta, new DadosCadastroCliente(nome, cpf, email)));
+        service.abrir(new DadosAberturaConta(numeroDaConta, new DadosCadastroCliente(nome, cpf, email)));
 
         System.out.println("Conta aberta com sucesso!");
         System.out.println("Pressione qualquer tecla e de ENTER para voltar ao menu principal");
@@ -108,7 +116,7 @@ public class BytebankApplication {
         System.out.println("Digite o número da conta:");
         var numeroDaConta = teclado.nextInt();
 
-        service.encerrar(numeroDaConta);
+        service.desativarConta(numeroDaConta);
 
         System.out.println("Conta encerrada com sucesso!");
         System.out.println("Pressione qualquer tecla e de ENTER para voltar ao menu principal");
@@ -119,7 +127,7 @@ public class BytebankApplication {
         System.out.println("Digite o número da conta:");
         var numeroDaConta = teclado.nextInt();
         var saldo = service.consultarSaldo(numeroDaConta);
-        System.out.println("Saldo da conta: " +saldo);
+        System.out.println("Saldo da conta: " + saldo);
 
         System.out.println("Pressione qualquer tecla e de ENTER para voltar ao menu principal");
         teclado.next();
@@ -148,6 +156,35 @@ public class BytebankApplication {
         service.realizarDeposito(numeroDaConta, valor);
 
         System.out.println("Depósito realizado com sucesso!");
+        System.out.println("Pressione qualquer tecla e de ENTER para voltar ao menu principal");
+        teclado.next();
+    }
+
+    private static void trasferirValor() {
+        System.out.println("Digite o número da conta de quem irá transferir: ");
+        var numeroDaContaOrigem = teclado.nextInt();
+
+        System.out.println("Digite o número da conta de destino: ");
+        var numeroDaContaDestino = teclado.nextInt();
+
+        System.out.println("Digite o valor a ser transferido: ");
+        var valor = teclado.nextBigDecimal();
+
+        service.transferirValor(numeroDaContaOrigem, numeroDaContaDestino, valor);
+
+        System.out.println("Transferência realizado com sucesso!");
+        System.out.println("Pressione qualquer tecla e de ENTER para voltar ao menu principal");
+        teclado.next();
+
+    }
+
+    public static void reativarConta() {
+        System.out.println("Digite o número da conta:");
+        var numeroDaConta = teclado.nextInt();
+
+        service.reativarConta(numeroDaConta);
+
+        System.out.println("Conta reativada com sucesso!");
         System.out.println("Pressione qualquer tecla e de ENTER para voltar ao menu principal");
         teclado.next();
     }
