@@ -1,5 +1,8 @@
 package br.com.alura.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Pet {
 
     private Long id;
@@ -9,6 +12,7 @@ public class Pet {
     private int idade;
     private String cor;
     private Float peso;
+
 
     public Pet(String tipo, String nome, String raca, int idade, String cor, Float peso) {
         this.tipo = tipo;
@@ -24,6 +28,40 @@ public class Pet {
         this.nome = petDTO.nome();
         this.raca = petDTO.raca();
         this.idade = petDTO.idade();
+        this.cor = petDTO.cor();
+        this.peso = petDTO.peso();
+    }
+
+    // Construtor default para o Jackson conseguir deserializar os JSON
+    public Pet() {
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public String getTipo() {
+        return tipo;
+    }
+
+    public String getNome() {
+        return nome;
+    }
+
+    public String getRaca() {
+        return raca;
+    }
+
+    public int getIdade() {
+        return idade;
+    }
+
+    public String getCor() {
+        return cor;
+    }
+
+    public Float getPeso() {
+        return peso;
     }
 
     @Override

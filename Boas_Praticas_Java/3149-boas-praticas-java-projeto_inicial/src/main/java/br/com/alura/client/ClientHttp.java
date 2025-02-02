@@ -1,7 +1,6 @@
 package br.com.alura.client;
 
 import com.google.gson.Gson;
-import com.google.gson.JsonObject;
 
 import java.io.IOException;
 import java.net.URI;
@@ -30,10 +29,11 @@ public class ClientHttp {
     }
 
     public HttpResponse<String> dispararRequisicaoPost(Object object, String uri) {
-
+// new Gson.toJson() como tem que enviar um JSON estamos transformando o objeto em String
         try {
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(uri))
+                    .header("Content-Type", "application/json")
                     .method("POST", HttpRequest.BodyPublishers.ofString(new Gson().toJson(object)))
                     .build();
 

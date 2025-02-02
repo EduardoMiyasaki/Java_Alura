@@ -5,9 +5,8 @@ import br.com.alura.domain.Abrigo;
 import br.com.alura.domain.AbrigoDTO;
 import br.com.alura.service.AbrigoService;
 import br.com.alura.service.PetService;
-import com.google.gson.JsonObject;
+import com.fasterxml.jackson.core.JsonProcessingException;
 
-import java.util.List;
 import java.util.Scanner;
 
 public class AdopetConsoleApplication {
@@ -62,9 +61,8 @@ public class AdopetConsoleApplication {
                 """);
     }
 
-    public static void listarAbrigos() {
-        List<Abrigo> listaAbrigos = abrigoService.listarAbrigos("http://localhost:8080/abrigos");
-        System.out.println(listaAbrigos);
+    public static void listarAbrigos() throws JsonProcessingException {
+        abrigoService.listarAbrigos("http://localhost:8080/abrigos");
     }
 
     private static void cadastrarAbrigo() {

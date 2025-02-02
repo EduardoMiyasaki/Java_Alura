@@ -1,35 +1,35 @@
 package br.com.alura.service;
 
+import br.com.alura.client.ClientHttp;
 import br.com.alura.domain.Abrigo;
 import br.com.alura.domain.AbrigoDTO;
-import br.com.alura.client.ClientHttp;
-import com.google.gson.*;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.net.http.HttpResponse;
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class AbrigoService {
 
     private ClientHttp client;
-    private List<Abrigo> listaAbrigos = new ArrayList<>();
-    private Gson gson;
 
     public AbrigoService(ClientHttp client) {
-        this.gson = new Gson().newBuilder().setPrettyPrinting().create();
         this.client = client;
     }
 
-    public List<Abrigo> listarAbrigos(String uri) {
-
+    public void listarAbrigos(String uri) throws JsonProcessingException {
         HttpResponse<String> response = client.dispararRequisicaoGET(uri);
-
-        String json = response.body();
-        AbrigoDTO abrigoDTO = gson.fromJson(json, AbrigoDTO.class);
-        Abrigo abrigo = new Abrigo(abrigoDTO);
-        listaAbrigos.add(abrigo);
-
-        return listaAbrigos;
+        // Pegando o retorno da requisição
+        String responseBody = response.body();
+        // Passando os valores do JSON para dentro da classe Abrigo, porem se tiver
+        // mais de um abrigo tem um Array
+        // ObjectMapper objeto que vai deserializar
+        // read.value()primeiro passa o json que sera deserializado e depois a classe que espera esse dados
+        Abrigo[] abrigos = new ObjectMapper().readValue(responseBody, Abrigo[].class);
+        // transforma um array em List para ter mais métodos
+        List<Abrigo> abrigoList = Arrays.stream(abrigos).toList();
+        System.out.println(abrigoList);
     }
 
     public void cadastrarAbrigo(AbrigoDTO abrigoDTO, String uri) {

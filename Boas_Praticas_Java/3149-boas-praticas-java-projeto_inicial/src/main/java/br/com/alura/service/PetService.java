@@ -2,41 +2,41 @@ package br.com.alura.service;
 
 import br.com.alura.client.ClientHttp;
 import br.com.alura.domain.Pet;
-import br.com.alura.domain.PetDTO;
-import com.google.gson.*;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.net.http.HttpResponse;
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class PetService {
 
     private ClientHttp client;
-    private Gson gson;
-    private List<Pet> listaPets = new ArrayList<>();
 
     public PetService(ClientHttp client) {
         this.client = client;
-        this.gson = new Gson().newBuilder().setPrettyPrinting().create();
     }
 
-    public void listarPets(String uri) {
+    public List<Pet> listarPets(String uri) {
+        try {
+            HttpResponse<String> response = client.dispararRequisicaoGET(uri);
+            int statusCode = response.statusCode();
+            if (statusCode == 404 || statusCode == 500) {
+                System.out.println("ID ou nome não cadastrado!");
+            }
+            String json = response.body();
+            Pet[] listaPets = new ObjectMapper().readValue(json, Pet[].class);
+            List<Pet> petsList = Arrays.stream(listaPets).toList();
+            System.out.println(petsList);
+            return Arrays.stream(listaPets).toList();
 
-        HttpResponse<String> response = client.dispararRequisicaoGET(uri);
-        int statusCode = response.statusCode();
-        if (statusCode == 404 || statusCode == 500) {
-            System.out.println("ID ou nome não cadastrado!");
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e.getMessage());
         }
-        String json = response.body();
-        PetDTO petDTO = gson.fromJson(json, PetDTO.class);
-        Pet pet = new Pet(petDTO);
-        listaPets.add(pet);
-
-        listaPets.forEach(System.out::println);
     }
 
     public void importarPets(String idOuNome, String nomeArquivo) {
@@ -60,6 +60,9 @@ public class PetService {
                 String uri = "http://localhost:8080/abrigos/" + idOuNome + "/pets";
 
                 HttpResponse<String> response = client.dispararRequisicaoPost(pet, uri);
+                if (response.statusCode() == 200) {
+                    System.out.println("Pet " + pet.getNome() + " cadastrado com sucesso");
+                }
             }
             reader.close();
         } catch (FileNotFoundException e) {
