@@ -29,7 +29,11 @@ public class AbrigoService {
         Abrigo[] abrigos = new ObjectMapper().readValue(responseBody, Abrigo[].class);
         // transforma um array em List para ter mais métodos
         List<Abrigo> abrigoList = Arrays.stream(abrigos).toList();
-        System.out.println(abrigoList);
+        if (abrigoList.isEmpty()) {
+            System.out.println("Sem abrigos");
+        } else {
+            System.out.println(abrigoList);
+        }
     }
 
     public void cadastrarAbrigo(AbrigoDTO abrigoDTO, String uri) {
