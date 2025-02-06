@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import org.springframework.data.annotation.PersistenceConstructor;
 
 import java.time.LocalDateTime;
 import java.util.Objects;
@@ -12,6 +13,17 @@ import java.util.Objects;
 @Entity
 @Table(name = "adocoes")
 public class Adocao {
+
+    // Solicitação DTO
+//    @PersistenceConstructor
+//    public Adocao(Pet pet, Tutor tutor, String motivo) {
+//        this.pet = pet;
+//        this.tutor = tutor;
+//        this.motivo = motivo;
+//    }
+
+    public Adocao() {
+    }
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -21,19 +33,17 @@ public class Adocao {
     @Column(name = "data")
     private LocalDateTime data;
 
-    @NotNull
+
     @ManyToOne
     @JsonBackReference("tutor_adocoes")
     @JoinColumn(name = "tutor_id")
     private Tutor tutor;
 
-    @NotNull
     @OneToOne
     @JoinColumn(name = "pet_id")
     @JsonManagedReference("adocao_pets")
     private Pet pet;
 
-    @NotBlank
     @Column(name = "motivo")
     private String motivo;
 
