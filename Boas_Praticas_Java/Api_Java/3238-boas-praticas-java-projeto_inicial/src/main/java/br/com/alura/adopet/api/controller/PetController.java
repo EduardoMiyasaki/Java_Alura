@@ -1,8 +1,10 @@
 package br.com.alura.adopet.api.controller;
 
 import br.com.alura.adopet.api.dto.DadosDetalhesPet;
+import br.com.alura.adopet.api.exception.ValidacaoException;
 import br.com.alura.adopet.api.model.Pet;
 import br.com.alura.adopet.api.repository.PetRepository;
+import br.com.alura.adopet.api.service.PetService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -17,20 +19,17 @@ import java.util.List;
 public class PetController {
 
     @Autowired
-    private PetRepository repository;
+    private PetService petService;
 
     @GetMapping
-    public ResponseEntity<List<DadosDetalhesPet>> listarTodosDisponiveis() {
-        List<Pet> pets = repository.findAll();
-        List<DadosDetalhesPet> disponiveis = new ArrayList<>();
+    public ResponseEntity<String> listarTodosDisponiveis() {
 
-        for (Pet pet : pets) {
-            if (pet.getAdotado() == false) {
-                disponiveis.add(new DadosDetalhesPet(pet));
-            }
+        try {
+            List<DadosDetalhesPet> pets = petService.listarPetsDisponiveis();
+            return ResponseEntity.ok().body("Pets disponíveis" + pets);
+        } catch (ValidacaoException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
         }
-
-        return ResponseEntity.ok(disponiveis);
     }
 
 }
