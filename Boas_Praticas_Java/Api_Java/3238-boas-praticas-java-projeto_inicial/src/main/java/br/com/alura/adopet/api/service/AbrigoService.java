@@ -1,5 +1,6 @@
 package br.com.alura.adopet.api.service;
 
+import br.com.alura.adopet.api.dto.AbrigoDTO;
 import br.com.alura.adopet.api.dto.CadastrarAbrigoDTO;
 import br.com.alura.adopet.api.dto.CadastrarPetNoAbrigoDTO;
 import br.com.alura.adopet.api.dto.DadosDetalhesPet;
@@ -29,8 +30,11 @@ public class AbrigoService {
     @Autowired
     private AbrigoCadastroPet abrigoCadastroPet;
 
-    public List<Abrigo> listarAbrigos() {
-        return abrigoRepository.findAll();
+    public List<AbrigoDTO> listarAbrigos() {
+        return abrigoRepository
+                .findAll()
+                .stream()
+                .map(AbrigoDTO::new).toList();
     }
 
     public void cadastrar(@RequestBody @Valid CadastrarAbrigoDTO dto) {

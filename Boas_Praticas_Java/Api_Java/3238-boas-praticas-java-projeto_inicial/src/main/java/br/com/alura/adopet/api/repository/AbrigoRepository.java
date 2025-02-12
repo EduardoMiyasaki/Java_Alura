@@ -18,5 +18,4 @@ public interface AbrigoRepository extends JpaRepository<Abrigo, Long> {
 
     boolean existsByNomeOrTelefoneOrEmail(CadastrarAbrigoDTO dto);
 
-    List<Pet> findPetsByIdOrNome(String idOuNome);
 }

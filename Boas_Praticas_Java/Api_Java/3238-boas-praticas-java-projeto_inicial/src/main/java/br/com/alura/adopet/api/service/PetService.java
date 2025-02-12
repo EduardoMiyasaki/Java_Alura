@@ -14,6 +14,11 @@ public class PetService {
     private PetRepository petRepository;
 
     public List<DadosDetalhesPet> listarPetsDisponiveis() {
-        return petRepository.findByAdotadoFalse();
+        return petRepository.findAllByAdotadoFalse()
+                .stream()
+                .map(DadosDetalhesPet::new)
+                .toList();
     }
+
+
 }

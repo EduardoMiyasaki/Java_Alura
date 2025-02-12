@@ -1,5 +1,6 @@
 package br.com.alura.adopet.api.controller;
 
+import br.com.alura.adopet.api.dto.AbrigoDTO;
 import br.com.alura.adopet.api.dto.CadastrarAbrigoDTO;
 import br.com.alura.adopet.api.dto.DadosDetalhesPet;
 import br.com.alura.adopet.api.exception.ValidacaoException;
@@ -25,7 +26,7 @@ public class AbrigoController {
     private AbrigoService abrigoService;
 
     @GetMapping
-    public List<Abrigo> listar() {
+    public List<AbrigoDTO> listar() {
         return abrigoService.listarAbrigos();
     }
 
