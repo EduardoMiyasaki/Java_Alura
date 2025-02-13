@@ -1,5 +1,7 @@
 package br.com.alura.adopet.api.service;
 
+import br.com.alura.adopet.api.dto.AprovacaoAdocaoDto;
+import br.com.alura.adopet.api.dto.ReprovacaoAdocaoDto;
 import br.com.alura.adopet.api.dto.SolicitacaoAdocaoDto;
 import br.com.alura.adopet.api.model.Abrigo;
 import br.com.alura.adopet.api.model.Adocao;
@@ -18,10 +20,11 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.then;
 
 @ExtendWith(MockitoExtension.class)
@@ -61,7 +64,16 @@ class AdocaoServiceTest {
     private Abrigo abrigo;
 
     @Mock
+    private Adocao adocao;
+
+    @Mock
     private SolicitacaoAdocaoDto dto;
+
+    @Mock
+    private AprovacaoAdocaoDto aprovacaoAdocaoDto;
+
+    @Mock
+    private ReprovacaoAdocaoDto reprovacaoAdocaoDto;
 
     @Captor
     private ArgumentCaptor<Adocao> adocaoCaptor;
@@ -109,7 +121,7 @@ class AdocaoServiceTest {
     }
 
     @Test
-    @DisplayName("Verificando se o Email está sendo disparado")
+    @DisplayName("Verificando se o Email está sendo disparado quando a solicitação de adoção for chamada")
     void deveriaEnviarEmail() {
 
         this.dto = new SolicitacaoAdocaoDto(10L, 20L, "Motivo qualquer");
@@ -124,6 +136,89 @@ class AdocaoServiceTest {
         // ASSERT
         BDDMockito.then(emailService)
                 .should()
-                .enviarEmail(pet.getAbrigo().getEmail(), "Solicitação de adoção","Olá " + pet.getAbrigo().getNome() +"!\n\nUma solicitação de adoção foi registrada hoje para o pet: "  + pet.getNome() +". \nFavor avaliar para aprovação ou reprovação.");
+                .enviarEmail(pet.getAbrigo().getEmail(), "Solicitação de adoção", "Olá " + pet.getAbrigo().getNome() + "!\n\nUma solicitação de adoção foi registrada hoje para o pet: " + pet.getNome() + ". \nFavor avaliar para aprovação ou reprovação.");
+    }
+
+
+    @Test
+    @DisplayName("Verificando se o Email está sendo disparado quando a solicitação de adoção for aprovada")
+    void deveriaEnviarEmailAprovado() {
+
+        // ARRANGE
+        this.aprovacaoAdocaoDto = new AprovacaoAdocaoDto(10L);
+        BDDMockito.given(adocaoRepository.getReferenceById(aprovacaoAdocaoDto.idAdocao())).willReturn(adocao);
+        BDDMockito.given(adocao.getPet()).willReturn(pet);
+        BDDMockito.given(adocao.getPet().getAbrigo()).willReturn(abrigo);
+        BDDMockito.given(adocao.getTutor()).willReturn(tutor);
+        BDDMockito.given(adocao.getData()).willReturn(LocalDateTime.now());
+
+        // ACT
+        adocaoService.aprovar(aprovacaoAdocaoDto);
+        // ASSERT
+        BDDMockito.then(emailService)
+                .should()
+                .enviarEmail(
+                        adocao.getPet().getAbrigo().getEmail(),
+                        "Adoção aprovada",
+                        "Parabéns " + adocao.getTutor().getNome() + "!\n\nSua adoção do pet " + adocao.getPet().getNome() + ", solicitada em " + adocao.getData().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss")) + ", foi aprovada.\nFavor entrar em contato com o abrigo " + adocao.getPet().getAbrigo().getNome() + " para agendar a busca do seu pet.");
+    }
+
+    @Test
+    @DisplayName("Verificando se o Email está sendo disparado quando a solicitação de adoção for reprovada")
+    void deveriaEnviarEmailReprovado() {
+
+        // ARRANGE
+        this.reprovacaoAdocaoDto = new ReprovacaoAdocaoDto(10L, "Justificativa qualquer");
+        BDDMockito.given(adocaoRepository.getReferenceById(reprovacaoAdocaoDto.idAdocao())).willReturn(adocao);
+        BDDMockito.given(adocao.getTutor()).willReturn(tutor);
+        BDDMockito.given(adocao.getPet()).willReturn(pet);
+        BDDMockito.given(adocao.getPet().getAbrigo()).willReturn(abrigo);
+        BDDMockito.given(adocao.getData()).willReturn(LocalDateTime.now());
+
+        // ACT
+        adocaoService.reprovar(reprovacaoAdocaoDto);
+        // ASSERT
+        BDDMockito.then(emailService)
+                .should()
+                .enviarEmail(
+                        adocao.getPet().getAbrigo().getEmail(),
+                        "Reprovação de adoção",
+                        "Olá " + adocao.getTutor().getNome() + "!\n\nInfelizmente sua adoção do pet " + adocao.getPet().getNome() + ", solicitada em " + adocao.getData().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss")) + ", foi reprovada pelo abrigo " + adocao.getPet().getAbrigo().getNome() + " com a seguinte justificativa: " + adocao.getJustificativaStatus());
+    }
+
+    @Test
+    @DisplayName("Verificando se está chamando o metódo marcarComoAprovada()")
+    void deveriaChamarMarcarComoAprovada() {
+        // ARRANGE
+        this.aprovacaoAdocaoDto = new AprovacaoAdocaoDto(10L);
+        BDDMockito.given(adocaoRepository.getReferenceById(aprovacaoAdocaoDto.idAdocao())).willReturn(adocao);
+        BDDMockito.given(adocao.getPet()).willReturn(pet);
+        BDDMockito.given(adocao.getPet().getAbrigo()).willReturn(abrigo);
+        BDDMockito.given(adocao.getTutor()).willReturn(tutor);
+        BDDMockito.given(adocao.getData()).willReturn(LocalDateTime.now());
+
+        // ACT
+        adocaoService.aprovar(aprovacaoAdocaoDto);
+
+        // Assert
+        BDDMockito.then(adocao).should().marcarComoAprovada();
+    }
+
+    @Test
+    @DisplayName("Deveria chamar o metódo marcarComoReprovado")
+    void deveriaChamarOMarcarComoReprovado() {
+
+        // ARRANGE
+        this.reprovacaoAdocaoDto = new ReprovacaoAdocaoDto(10L, "Justificativa qualquer");
+        BDDMockito.given(adocaoRepository.getReferenceById(reprovacaoAdocaoDto.idAdocao())).willReturn(adocao);
+        BDDMockito.given(adocao.getPet()).willReturn(pet);
+        BDDMockito.given(adocao.getPet().getAbrigo()).willReturn(abrigo);
+        BDDMockito.given(adocao.getTutor()).willReturn(tutor);
+        BDDMockito.given(adocao.getData()).willReturn(LocalDateTime.now());
+
+        // ACT
+        adocaoService.reprovar(reprovacaoAdocaoDto);
+        // ASSERT
+        BDDMockito.then(adocao).should().marcarComoReprovada(reprovacaoAdocaoDto.justificativa());
     }
 }
