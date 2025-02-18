@@ -16,5 +16,6 @@ public record CadastroPetDto(
         @NotBlank
         String cor,
         @NotNull
-        Float peso) {
+        Float peso
+       ) {
 }

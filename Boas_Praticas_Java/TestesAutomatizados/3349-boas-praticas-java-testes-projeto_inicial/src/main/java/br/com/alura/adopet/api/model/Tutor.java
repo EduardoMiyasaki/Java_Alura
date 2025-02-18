@@ -14,7 +14,7 @@ public class Tutor {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Long tutorId;
 
     private String nome;
 
@@ -44,16 +44,16 @@ public class Tutor {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Tutor tutor = (Tutor) o;
-        return Objects.equals(id, tutor.id);
+        return Objects.equals(tutorId, tutor.tutorId);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id);
+        return Objects.hash(tutorId);
     }
 
-    public Long getId() {
-        return id;
+    public Long getTutorId() {
+        return tutorId;
     }
 
     public String getNome() {
