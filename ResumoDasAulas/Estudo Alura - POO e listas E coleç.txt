@@ -1,0 +1,149 @@
+Estudo Alura - POO e listas E coleção de dados
+
+Do mesmo jeito que um metódo pode ter a classe mãe como paramêtro e aceitar as filhas
+uma lista também :)
+
+ou seja Uma Lista do tipo Titulo
+aceita Filme e Serie que são filhas dela
+
+exemplo ArrayList<Pessoa>
+aceita Aluno/Professor, Médico/Paciente (Todos que são filho de Pessoa)
+
+A forma mais comum de percorrer uma lista no Java é utilizando o laço foreach tradicional
+
+lista.forEach(item ->{
+sout("oi" + item)
+)}
+
+
+Existem variáveis de referência ou seja
+Você tem um objeto do tipo Filme
+
+Filme filme1 = new Filme("Avatar", 2009);
+Filme meuFilme = filme1;
+
+Essas duas variáveis se refenciam ao mesmo objeto
+ou seja são o mesmo objeto e se eu modificar 1 irá mudar na outra
+
+Filme filme1 = new Filme("Avatar", 2009);
+Filme filme2 = new Filme("Avatar", 2009);
+
+if (filme1 == filme2) {
+    System.out.println("Iguais");
+} else {
+    System.out.println("Diferentes");
+}
+
+nesse código a resposta será diferente
+pois são dois objetos diferentes
+
+
+Filme filme1 = new Filme("Avatar", 2009);
+Filme meuFilme = filme1;
+
+if (filme1 == filme2) {
+    System.out.println("Iguais");
+} else {
+    System.out.println("Diferentes");
+}
+
+E nesse código a saída será iguais pois referenciam ao mesmo objeto
+
+Só é recomendado utilizar o forEach quando você não precisa ter um valor de index e nem fará modificações externas
+
+Ordenação de Listas
+
+Quando você quer ordenar uma lista e o tipo dela é um tipo primitivo
+basta utilizar Collections.sort(listaNomes)
+
+porem quando é um objeto diferente teremos que fazer algumas coisas
+
+exemplo Lista de títulos
+
+teremos que ir na classe Titulo e implementar Comparable<Titulo>
+
+e sobreEscrever o método compareTo para comparar por nome por exemplo seria assim
+
+@Override
+public int compareTo(Titulo outroTitulo){
+return this.getNome.compareto(outroTitulo.getNome())
+}
+
+ao chamarmos 
+Collections.sort(listaTitulos)
+
+agora irá ordernar em ordem alfabética
+
+porem você também quer ordenar por ano de lançamento e para isso você pode fazer de diversas maneiras
+por exemplo criando uma classe ComparadorAno que vai implementar Compator<Titulo>
+e sobreescrever o método compare
+
+@Override 
+public int compare(Titulo titulo1 , Titulo titulo2){
+
+if(titulo1.getAnoDeLancamento() > titulo2.getAnoDeLancamento){
+return 1;
+}
+else if(titulo1.getAnoDeLancamento() > titulo2.getAnoDeLancamento){
+return -1;
+}
+return 0 
+}
+
+Dessa forma ele irá ordenar por ordem crescente dos anos de lancamento
+
+utilizando os seguintes comandos
+
+// Criar uma instância do comparador
+ComparadoAno comparador = new ComparadorAno();
+
+Collections.sort(listaTitulos, comparador);
+
+ou pode fazer dos jeitos modernos
+
+listaTitulos.sort(comparadorAno);
+
+Que nem precisar criar nenhum Classe
+listaTitulos.sort(Comparator.comparing(Titulo::getAnoLancamento));
+
+
+Criação de Listas
+
+É importante passar o tipo da lista apenas como List
+exemplo: List<Titulo> listaTitulos = new LinkedList<>();
+
+pois assim você consegue trocar a lista com maior facilidade você está abstraindo o tipo da lista dando mais possibilidades
+
+Map = O Map é uma interface que permite que os desenvolvedores associem chaves a valores. É uma estrutura de dados útil para muitas aplicações Java, especialmente aquelas que envolvem a manipulação de grandes quantidades de dados, portanto, é comum usá-lo para realizar buscas, atualização e recuperação de elementos por chaves
+
+Não tem index no map isso é ruim mas é bom em outras situaçoes
+
+podemos utiliza instaceof para saber o tipo do objeto
+exemplo
+
+listaTitulos.forEach(titulo -> {
+	if(titulo instaceof Movie){
+	println("é um filme");
+}
+else {
+println("é Uma série");
+}
+})
+
+
+Polimorfismo: Você entendeu que assim como um método pode aceitar a classe mãe como parâmetro e aceitar as classes filhas, uma lista também pode aceitar objetos de classes filhas, desde que elas herdem da classe mãe da lista.
+
+Iteração de listas: Você mencionou que a forma mais comum de percorrer uma lista no Java é utilizando o laço forEach tradicional.
+
+Referência de objetos: Você explicou corretamente a diferença entre ter duas variáveis referenciando o mesmo objeto ou objetos diferentes.
+
+Ordenação de listas: Você entendeu que para ordenar listas de objetos, é necessário implementar a interface Comparable na classe do objeto e sobrescrever o método compareTo. Você também mencionou outras formas de ordenação, como criar uma classe Comparator personalizada.
+
+Criação de listas: Você destacou a importância de declarar as listas usando a interface List ao invés da implementação concreta, para ter mais flexibilidade na troca da implementação.
+
+Uso do Map: Você explicou corretamente as características do Map, como a associação de chaves a valores e a ausência de índices.
+
+Uso do instanceof: Você mencionou que o instanceof pode ser usado para verificar o tipo do objeto em uma lista.
+
+
+Chegamos ao final deste curso e você pôde conhecer e praticar a utilização de listas e coleções de dados no Java. Você conheceu a classe ArrayList e aprendeu a manipular os dados de uma lista, adicionando, percorrendo, definindo o tipo específico que pode ser incluído na mesma, tamanho, dentre outros fatores. Aprendeu também a identificar o tipo de uma instância através do InstanceOf, aprimorou seus conhecimentos sobre a classe Object e suas hierarquias, criou alguns construtores para iniciar seus objetos já com valores, definiu algumas formas de ordenação para a lista, conheceu a interface List e reforçou o conhecimento sobre interfaces e a motivação e de utilizá-las. E ainda fechou o curso criando uma nova aplicação como desafio!

@@ -1,0 +1,170 @@
+Estudo Alura - Consumindo API, gravando arquivos e lidando com erros
+
+Código assíncrono = O programa não espera que a tarefa acabe para começar outra
+Código síncrono = O programa espera uma ação finalizar para começar a outra
+
+Declaração do ClienteHTTP
+HttpCliente client = HttpCliente.newHttpCliente();
+
+Declaração da Requisição
+HttpRequest request = HttpRequest.newBuilder().uri(URI.create("Http.com")).build();
+
+// Enviando a requisão através do cliente e recebendo a resposta
+HttpResponse<String> response = cliente.send(request, HttpResponse.BodyHandles.ofString());
+
+Outro jeito de fazer a requisição
+client.sendAsync(request, HttpResponse.BodyHandlers.ofString())
+               .thenApply(HttpResponse::body)
+               .thenAccept(System.out::println)
+                .join();
+
+
+Usando a biblioteca GSON 
+posso transformar JSON em Classes 
+e Classes em JSON
+
+e caso os dados que venha no JSON tenha nomes diferentes dos atributos da Classes
+podemos utilizar a Anotação @SerializedName("Title")
+private string titulo;
+
+Serializar = significa transformar algo em texto 
+
+Mas essa não é a maneira ideal, pois se trocar de API pode ser o que os dados venha de maneira diferente como "MovieName"
+
+Então vamos criar um Record
+que vai servir como tradutor do JSON
+passando como paramêtro os itens que quero que sejam implementados dentro dos atributos
+
+public record TituloOmdb(String title, String year , String runtime) {
+}
+
+porém no json os itens vem com letra maiscula por exemplo Title, Year , Runtime 
+por conta disso nós iremos instancia o GSON com a configuração que todo campo iniciara com letra Maiscula
+
+setLenient() deixa o interpretador de JSON mais flexível,ele aceita Campos ausentes no JSON e algumas variações na formatação do JSON (como vírgulas extras ou valores flexíveis).
+
+Gson gson = new GsonBuilder().
+                setFieldNamingPolicy(FieldNamingPolicy.UPPER_CAMEL_CASE)
+                .setLenient()
+                .create();
+
+normalmente Record serve como transferência de dados pra classe que precisa desses dados
+
+Passando os dados do json para o record
+
+
+TituloOmdb meuTituloOmdb = gson.fromJson(json, TituloOmdb.class);
+
+Criando um Filme com os dados passados no record
+ Filme meuFilme2 = new Filme(meuTituloOmdb);
+
+construtor de Titulo para receber esses dados
+
+ public Titulo(TituloOmdb tituloOmdb) {
+        this.setNome(tituloOmdb.title());
+        this.setAnoDeLancamento(Integer.parseInt(tituloOmdb.year()));
+        this.duracaoEmMinutos = Integer.valueOf(tituloOmdb.runtime().substring(0,3));                         subString pega o valor 0 do campo até o 2(3 valores, 0,1,2)
+    }
+
+Construtor de filme 
+public Filme(TituloOmdb tituloOmdb) {
+        super(tituloOmdb);
+    }
+
+
+
+Utilizando um construtor que tem como paramêtro o record e passando as informando as informações através dele podemos passar os valores corretos para os atributos
+
+
+								           Trabalhando com exceções
+
+Exceções = podem ser previstas, antecipas e tratadas.
+
+        try {
+            Filme meuFilme2 = new Filme(meuTituloOmdb);
+            System.out.println(meuFilme2);
+
+        }
+        catch (NumberFormatException e) {
+            System.out.println("Aconteceu um erro");
+            System.out.println(e.getMessage());
+        }
+
+utilizar o try catch - permite tratar exceções
+nesse caso se houver algo erro na transformação de String para INT irá disparar aconteceu um erro
+
+O finally é usado para executar um bloco de código independentemente de ocorrer uma exceção ou não, ou seja, ele sempre é executado. Isso pode ser útil quando precisamos executar um código tanto no try, caso não ocorra uma exceção, quanto no catch, caso uma exceção seja lançada. Por exemplo, suponha que você tenha o seguinte código:
+
+try {
+  metodoQuePodeLancarExcecao();
+  System.out.println("Executou");
+  System.out.println("Finalizou!");
+} catch (Exception e) {
+  System.out.println("Deu erro!");
+  System.out.println("Finalizou!");
+}
+
+Veja que o "Finalizou" aparece independente se conseguiu ou não executar a ação por isso utilizamos o finally, para não precisar duplicar código
+try {
+  metodoQuePodeLancarExcecao();
+  System.out.println("Executou");
+} catch (Exception e) {
+  System.out.println("Deu erro!");
+} finally {
+  System.out.println("Finalizou!");
+}
+
+Multi Catch tratando dois erros em um catch 
+try {
+    metodoQuePodeLancarExcecao();
+} catch (NullPointerException | IllegalArgumentException e) {
+    System.out.println("tratando erro...");
+}
+
+Criando uma Classe de Excessao de conversão de ano
+Na classe titulo
+
+passei no construtor que se o ano for maior que 4 caracteres vai throw(lance) uma nova Exception com o valor do construtor
+        if (tituloOmdb.year().length() > 4) {
+            throw new ErroDeConversaoDeAnoException("Não consegui converter o ano," +
+                    "porque tem mais de 4 caracteres");
+        }
+
+   public ErroDeConversaoDeAnoException(String msg) {
+    this.mensagem = msg;
+    }
+
+    @Override
+    public String getMessage() {
+        return this.mensagem;
+    }
+}
+
+Criando um file
+File file = new File("C:\\meuArquivo.txt");
+
+Lendo um arquivo
+File file = new File("C:\\meuArquivo.txt");
+FileReader reader = new FileReader(file);
+
+int data = reader.read();
+while (data != -1) {
+    System.out.print((char) data);
+    data = reader.read();
+}
+reader.close();
+
+
+Lendo arquivos com o Scanner
+        try {
+            File arquivo = new File("arquivo.json");
+            Scanner scanner = new Scanner(arquivo);
+
+            while (scanner.hasNextLine()) {
+                String linha = scanner.nextLine();
+                System.out.println(linha);
+            }
+
+            scanner.close();
+        } catch (FileNotFoundException e) {
+            System.out.println("Arquivo não encontrado!");

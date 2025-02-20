@@ -1,0 +1,106 @@
+Estudo Alura - Java e refatoração
+
+Foi visto durante a aula que para acessar os métodos que criamos na classe AdopetConsoleApplication precisávamos transformá-los em métodos estáticos. Isso significa que se trata de um método de classe que não depende de uma instância. Dessa maneira, podemos acessá-lo de forma direta entre métodos estáticos:
+
+Também há a opção de criarmos uma instância da nossa classe e referenciar métodos não estáticos, pois os métodos passam a ser de instância. 
+
+Biblioteca Jackson databind para transformar JSON em objeto e objeto em JSON
+
+new ObjectMapper() = objeto que faz a leitura do json, que é o retorno do response.body() e transforma em um array de objetos
+readValue() = primeiro passa o json que será lido e depois o objeto que você quer passar o valor do json
+
+ Abrigo[] listaAbrigos = new ObjectMapper().readValue(json, Abrigo[].class);
+
+Arrays.stream(listaAbrigos).toList();
+
+Teste manuais são inviáveis em aplicações complexas
+
+JUnit = responsável por criar testes unitários
+Mockito = simula a resposta de um método: O Mockito é uma ferramenta que permite criar objetos simulados (mocks) para testar o comportamento de métodos sem depender de implementações reais.
+
+mock cria uma instância simulada de uma classe, permitindo que você defina o comportamento esperado para os métodos dessa classe.
+
+valor esperado No System.out.println
+String expectIdENome = "[\"id\":\"0\", \"nome\":\"Teste\", \"telefone\":\"(55)941159058\",\"email\":\"Eduardo@gmail.com\"\n" +
+                "]";
+
+Array de bytes, pega o retorno do System.out.Println
+ByteArrayOutputStream baos = new ByteArrayOutputStream();
+
+Tudo que seria escrito no console como o retorno da api vai para dentro do baos
+PrintStream printStream = new PrintStream(baos);
+
+Isso significa que qualquer coisa que normalmente seria impressa no console (usando System.out.println(), por exemplo) será capturada e armazenada no baos.
+System.setOut(printStream);
+
+ when(response.body()).thenReturn("[{"+abrigo.toString()+"}]"); Aqui você está simulando o retorno do método body() do response para que ele retorne uma string que representa um objeto Abrigo
+        when(client.dispararRequisicaoGET(anyString())).thenReturn(response);
+
+        abrigoService.listarAbrigos("http://localhost:8080/abrigos");
+
+abrigoService.listarAbrigos("http://localhost:8080/abrigos");, o método processa a resposta da API (que foi simulada) e imprime a mensagem correspondente no console. Essa mensagem é o que está sendo capturado pelo baos.
+
+lança a requisição e quando feita returna o response
+
+pega os valores de acordo com a linha
+String[] lines = baos.toString().split(System.lineSeparator());
+Aqui, você está convertendo o conteúdo do baos em uma string e dividindo-a em linhas, para que possa verificar qual mensagem foi impressa.
+
+pega o valor de retorno da requisição
+String actualIdENome = lines[0];
+
+// verificando se o que nós esperávamos e o resultado estão iguais
+Assertions.assertEquals(expectIdENome, actualIdENome);
+
+
+abrigo.setId(0L);: Aqui, você está configurando o ID do objeto abrigo para 0. Isso é importante para que, quando você converte o objeto abrigo em uma string, ele tenha um ID definido.
+
+String expectIdENome = "[\"id\":\"0\", \"nome\":\"Teste\", \"telefone\":\"(55)941159058\",\"email\":\"Eduardo@gmail.com\"\n" + "]";: Essa linha define o valor esperado que você espera receber da API. É uma representação em string do objeto abrigo, que você espera que seja impresso no console.
+
+ByteArrayOutputStream baos = new ByteArrayOutputStream();: Aqui, você cria um novo ByteArrayOutputStream, que será usado para capturar a saída do console.
+
+PrintStream printStream = new PrintStream(baos);: Você cria um PrintStream que está ligado ao baos. Isso significa que qualquer saída que normalmente iria para o console será redirecionada para o baos.
+
+System.setOut(printStream);: Com essa linha, você redireciona a saída padrão do sistema para o printStream. A partir deste ponto, tudo que for impresso usando System.out.println() será armazenado no baos.
+
+when(client.dispararRequisicaoGET(anyString())).thenReturn(response);: Essa linha simula a chamada ao método dispararRequisicaoGET do client, fazendo com que ele retorne o objeto response que você configurou.
+
+when(response.body()).thenReturn("[{" + abrigo.toString() + "}]");: Aqui, você simula o retorno do corpo da resposta da API, que será um array JSON contendo o objeto abrigo convertido em string.
+
+abrigoService.listarAbrigos("http://localhost:8080/abrigos");: Quando você chama esse método, ele processa a resposta simulada da API e imprime as informações do abrigo no console. Como a saída foi redirecionada, essa impressão vai para o baos.
+
+String[] lines = baos.toString().split(System.lineSeparator());: Após a execução do método, você converte o conteúdo do baos em uma string e a divide em linhas. Isso permite que você acesse cada linha da saída gerada.
+
+String actualIdENome = lines[0];: Aqui, você pega a primeira linha da saída capturada, que deve conter a informação do abrigo.
+
+Assertions.assertEquals(expectIdENome, actualIdENome);: Por fim, você compara o valor esperado (expectIdENome) com o valor real (actualIdENome) que foi impresso. Isso verifica se a saída do seu método está correta
+
+Design pattern = Padrão de projeto
+
+Command é um dos vários design patterns
+
+você não precisa instancia vários objetos para chamar sua funções
+você instancia um objeto do tipo command e ele de acordo com a necessidade instancia outros objetos
+
+Você tem um interface com o nome Command com o método execute
+você tem uma classe CommandExecutor que tem um método executeCommand que recebe como paramêtro uma classe que instanciou Command e executa
+
+e você cria Classes com o nome de cada método que você ira implementar e com o sufixo command implementando a interface Command
+e sobreescrevendo o método execute
+
+public class ListarAbrigoCommand implements Command {
+    @Override
+    public void execute() {
+                   ClientHttp client = new ClientHttp();
+            AbrigoService abrigoService = new AbrigoService(client);
+
+            abrigoService.listarAbrigos("http://localhost:8080/abrigos");
+        }
+    }
+
+e na classe principal você instancia um CommandExecutor executor = new CommandExecutor();
+case 1 -> executor.executeCommand(new ListarAbrigoCommand());
+
+
+
+O padrão Command é usado para encapsular uma solicitação como um objeto, permitindo parametrizar clientes com diferentes solicitações, enfileirar solicitações, registrar o log de solicitações e até mesmo desfazer as operações. Ele separa o remetente (quem faz a solicitação) do receptor (quem executa a ação), permitindo flexibilidade em adicionar novos comandos e mantendo o acoplamento baixo.

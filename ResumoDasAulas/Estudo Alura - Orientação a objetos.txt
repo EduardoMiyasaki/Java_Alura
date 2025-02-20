@@ -1,0 +1,95 @@
+Estudo Alura - Orientação a objetos
+
+Em uma interface se você deseja que um método tenha corpo ou seja, se torne um método concreto basta utilizar default antes
+exemplo: default int somar(int n1 , int n2){
+	return n1 + n2;
+}
+
+lembrei atributos é o nome da "Variável de classe"
+
+IoT = comunicação entre hardwares
+
+paradigma = Um paradigma é um modelo ou estilo de programação que aplicamos na criação de um software.
+
+interface serve para isolar para não precisar se preocupar com detalhes quando você é um cliente
+
+e o isolamento é melhor pois quando uma classe precisa alterar o corpo do método não ira afetar as outras classes
+
+um exemplo é quando você faz uma pequena alteração em algum lugar e tem que mudar em diversos outras. Isso pode significar que esta mal isolados(encapusulado)
+
+modificador de acessos 
+
+public
+
+private 
+
+protected que permite que os atributos de uma classe sejam acessados por outras classes do mesmo pacote e também por suas subclasses, independentemente do pacote em que se encontram.
+
+default é aquele que não especifica nenhum modificador de acesso. Quando nenhum modificador de acesso é especificado, a classe, atributo ou método pode ser acessado apenas pelas classes que estão no mesmo pacote.
+
+Classe mãe = generalização / Super Classe
+Classe filha = Especialização / Sub Classe
+
+Poliformismo
+Tem como passar a mãe como paramêtro e seus filhos poderão ser adicionados neste paramêtro
+então se você sobreEscreveu algum métodos ele irá utilizar o método da filha 
+exemplo
+
+Título(mãe):
+  public int getDuracaoEmMinutos() {
+        return this.duracaoEmMinutos;
+    }
+
+Série(filha):
+  @Override
+    public int getDuracaoEmMinutos() {
+        return this.temporada * episodiosPorTemporada * minutorProEpisodio;
+    }
+
+Filme(filha):
+  public int getDuracaoEmMinutos() {
+        return this.duracaoEmMinutos;
+    }
+
+então se eu criar uma nova classe e pedir (Título) como paramêtro irá poder chamar as filhas e usar a regra de negócio de cada uma delas
+
+
+a anotação @Deprecated é usada para indicar que um método ou classe está obsoleto e não deve ser mais utilizado.
+
+Interfaces
+
+
+Você pode criar uma classe e utilizar uma interface como paramêtro, ou seja aceita nesse método,todas as classes que implementou a interface do parâmetro seram aceitas
+
+ArrayList = lista com um array primitivo (Lista de objetos)
+
+arrays são estruturas de dados que permitem armazenar uma coleção de elementos do mesmo tipo
+
+
+Todas as classes são Filhas de Object
+então todas tem seus metódos
+
+Não existe herança de construtores(explicita)
+as filhas terão que fazer seus próprios construtores e passando as informações que a mãe está pedindo
+utilizando super(),e a partir disso ira chamar o construtor da mãe
+exemplo:
+Título está pedindo nome e ano de lançamento 
+public Titulo(String nome, int anoDeLancamento) {
+
+        if (anoDeLancamento > 1900 && anoDeLancamento <= 2025) {
+            this.nome = nome;
+            this.anoDeLancamento = anoDeLancamento;
+        } else {
+            System.out.println("erro!!!! Nenhuma valor foi atribuído");
+        }
+    }
+
+então o Movie que herda de titulo terá que passar também essa informação
+   public Movie(String nome , int anoDeLancamento){
+        super(nome, anoDeLancamento);
+    }
+
+
+pode ter mais de um construtor na mesma classe
+
+Chegamos ao final deste curso e você pôde conhecer e praticar os quatro pilares da Orientação a Objetos, que são abstração, herança, encapsulamento e polimorfismo. Você modelou o projeto ScreenMatch em classes, com atributos e métodos diversos, fazendo com que cada classe fosse responsável por sua própria regra de negócio. Fez isso utilizando o encapsulamento, deixando o acesso aos atributos de forma privada, a fim de controlar de fato o que pode ser modificado ou não. Além disso, organizou seu código em pacotes, reaproveitou códigos através de herança e fez a sobrescrita de métodos, para que tenham um comportamento de acordo com a demanda da classe de especialização. Entendeu e trabalhou com o polimorfismo, onde utilizamos a referência a uma classe mais genérica (nossa superclasse) para que o método chamado se comporte de acordo com a subclasse que é passada como parâmetro. Implementou interfaces e viu a motivação para as mesmas. E ainda fechou o curso criando uma nova aplicação como desafio!

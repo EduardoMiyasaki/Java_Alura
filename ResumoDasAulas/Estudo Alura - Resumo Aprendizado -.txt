@@ -1,0 +1,127 @@
+Estudo Alura - Resumo Aprendizado - 27/01/25
+Orientação objetos - Trabalhando com Listas e coleções de dados - Consumindo API, gravando arquivos e lidando com erros
+
+É possível criar uma classe com um método que passa uma Classe mãe como paramêtro e com isso todas as filhas são aceitas nesse método
+
+É possível criar uma classe com um método que passa uma interface como paramêtro e com isso todas as Classes que implementaram essa interface serão aceitas
+
+Existem duas interfaces que conheci que fazem comparação para ordenar
+
+Comparable<Classe> , comparator<Classe>
+
+Comparable vai ter que implementar o método compareTo
+
+Exemplo:
+@Override
+  public int compareTo(Titulo outroTitulo) {
+        return this.getNome().compareTo(outroTitulo.getNome());
+    }
+
+e para ordenar basta utilizar
+Collections.sort(lista)
+
+para Ordenar por ano a mesma classe, poderíamos criar outra classe que implementa o comparator
+@Override
+    public int compare(Titulo titulo1, Titulo titulo2) {
+        return Double.valueOf(titulo1.getAnoDeLancamento()).compareTo(Double.valueOf(titulo2.getAnoDeLancamento()));
+
+e para ordenar basta utilizar 
+
+ComparadorAno comparadorAno = new ComparadorAno();
+Collections.sort(lista , comparadorAno)
+
+ou lista.sort(Comparator.comparing(Titulo::getAnoDeLancamento))
+
+Exceções
+Para criar uma classe que gera uma excessão em tempo de execução temos que extender a classe RunTimeException
+
+ public ErroDeConversaoDeAnoException(String msg) {
+    this.mensagem = msg;
+    }
+
+ @Override
+    public String getMessage() {
+        return this.mensagem;
+    }
+
+Podemos passar a anotação 
+para que quando chamamos o transformador de JSON para classe(GSON) ele identifique qual atributo recebe aquele valor
+@SerializedName("Director")
+private String diretor;
+
+Mas não é uma boa prática
+
+uma melhor prática seria passar um Record 
+que serve para fazer transferência de dados
+
+então o GSON faz a transferência dos dados do JSON para o record 
+e a classe principal é instanciada com o construtor do record
+
+public record TituloOmdb(String title, String year , String runtime) {
+}
+
+e no construtor passariamos o record
+
+public Titulo(TituloOmdb tituloOmdb) {
+        this.setNome(tituloOmdb.title());
+
+        if (tituloOmdb.year().length() > 4) {
+            throw new ErroDeConversaoDeAnoException("Não consegui converter o ano," +
+                    "porque tem mais de 4 caracteres");
+
+        }
+        this.setAnoDeLancamento(Integer.valueOf(tituloOmdb.year()));
+        this.duracaoEmMinutos = Integer.valueOf(tituloOmdb.runtime().substring(0, 3));
+    }
+
+Todas classes filhas de Titulo teria que manipular seus construtores para aceitar o record
+exemplo filme
+ public Filme(TituloOmdb tituloOmdb) {
+        super(tituloOmdb);
+    }
+
+Sempre que for criar uma lista primeiro passe a interface e depois o tipo definitivo da lista gerando maior facilidade de leitura e troca do tipo de lista
+List<Titulo> listaTitulos = new ArrayList<>();
+
+Criando o convertor de JSON para Classe e Classe Para JSON
+// Criando um Gson que as primeiras Letras do Json Vem com letra Maiusculas
+        Gson gson = new GsonBuilder().
+                setFieldNamingPolicy(FieldNamingPolicy.UPPER_CAMEL_CASE).
+                setPrettyPrinting().
+                create();
+
+Criando um arquivo
+FileWriter escrita = new FileWriter("Filmes.json");
+
+try catch para tratar exceções
+
+Criando um cliente que fará requisições
+HttpClient cliente = HttpCliente.newHttpClient();
+
+String endereco = "https://www.omdbapi.com/?t=" + nomeFilme.replace(" ", "+") + "&apikey=20400ae6";
+Criando a requisição
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(endereco))
+                    .build();
+
+Criando uma variável , para que quando o cliente enviar a requisição seja armazenada a resposta e transformada em String
+  HttpResponse<String> response =
+                    client.send(request, HttpResponse.BodyHandlers.ofString());
+
+ // passando o corpo da resposta para a variável json
+            String json = response.body();
+            System.out.println(json);
+
+ // Passando os dados do JSON para o record que é responsável por fazer a transferência de dados
+                TituloOmdb meuTituloOmdb = gson.fromJson(json, TituloOmdb.class);
+
+Criando um Filme com os dados do record
+Filme meuFilme2 = new Filme(meuTituloOmdb);
+
+catch(ErroDeConversaoDeAnoException e){
+sout(e.getMessage())
+}
+
+escrevendo no arquivo 
+escrita.write(gson.toJson(listaTitulos));
+escrita.close();
