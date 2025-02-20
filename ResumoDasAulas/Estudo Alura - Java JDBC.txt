@@ -1,0 +1,149 @@
+Estudo Alura - Java JDBC
+
+É importante criar uma classe ConnectionFactory para sempre que for criar uma conexão com o banco so precisar instancia essa classe e chamar o método de abrir conexão
+public class ConnectionFactory {
+
+    public Connection openConnection() {
+        try {
+            return DriverManager
+                    .getConnection("jdbc:mysql://localhost:3306/byte_bank?user=root&password=10062006Dudu");
+        } catch (SQLException e) {
+            throw new RuntimeException(e.getMessage());
+        }
+    }
+
+Na classe ContaService temos um atributo connection que é do tipo ConnectionFactory
+
+e criamos um construtor para que sempre que instanciar a classe contaService crie um novo ConnectionFactory e passe para o atributo
+ public ContaService() {
+        this.connection = new ConnectionFactory();
+    }
+
+quando for utilizar um método que fara requisição para o banco
+basta pedir que o atributo connection execute o método de abrir conexão
+ Connection connection = this.connection.openConnection();
+
+temos que criar a requisição em um variável do tipo String
+ String sql = "INSERT INTO conta (numero, saldo , cliente_nome, cliente_cpf, cliente_email)" +
+                "VALUES(?, ?, ?, ?, ?)";
+
+e passar os valores através de um PreparedStatement
+
+ try {
+            // PreparedStatement responsável por setar os valores
+            PreparedStatement preparedStatement = connection.prepareStatement(sql);
+
+            preparedStatement.setInt(1, conta.getNumero());
+            preparedStatement.setBigDecimal(2, BigDecimal.ZERO);
+            preparedStatement.setString(3, dadosDaConta.dadosCliente().nome());
+            preparedStatement.setString(4, dadosDaConta.dadosCliente().cpf());
+            preparedStatement.setString(5, dadosDaConta.dadosCliente().email());
+
+            preparedStatement.execute();
+        } catch (SQLException e) {
+            throw new RuntimeException(e.getMessage());
+        }
+
+Nunca deixar que ocorra um SQL INJECTION
+SQL INJECTION = fazer a sua Query sql concatenando o valor
+Exemplo: String sql = "SELECT * FROM conta WHERE numero = " + numero + " and esta_ativa = true";
+se alguém digitar 2;delete from produto; ele irá apagar a tabela
+
+então temos que utilizar métodos que evitem isso
+desta maneira evitamos isso 
+String sql = "INSERT INTO conta (numero, saldo , cliente_nome, cliente_cpf, cliente_email)" +
+                "VALUES(?, ?, ?, ?, ?)";
+preparedStatement.setInt(1, conta.getNumero());
+pois o valor será direcionado para o campo necessário e não terá como fazer outro comandos 
+
+ConnectionFactory = local onde tem um método que cria a conexão com o banco
+
+Service = local onde temos um atributo ConnectionFactory
+e quando instanciarmos Service instaciamos também no construtor um this.connection = new ConnectionFactory
+Service é o local onde passamos nossas regras de negócio nos métodos
+após chamarmos um método no service ele irá abrir a conexão e instanciar um DAO com a conexao aberta e chamar um metódo 
+
+DAO = Faz a conexão direita no banco
+utilizando PreparedStatement que executa as querys
+a conexão é enviada do service para o DAO no momento que instanciar 
+ou seja para instanciar o DAO tem que passar a Connection(construtor temm que ter o Connection)
+
+dentro de cada método passamos um String sql = "";
+que recebe a querySQL
+
+ String sql = "INSERT INTO endereco (cep , rua , bairro, cidade , uf , estado , regiao)" +
+                "VALUES(?, ?, ?, ?, ?, ? ,?)";
+
+PreparedStatement preparedStatement = connection.prepareStatement(sql)
+
+preparedStatement.setString(1, enderecoDTO.cep());
+passando o valor de enderecoDTO.cep para o 1 paramêtro ou seja cep
+
+preparetedStatement.execute() retorna true ou false (usado em INSERT, Update , E DELETE)
+preparetedStatement.executeQuery() retorna um ResultSet
+
+DTO = record que passamos os dados que vao vir do json
+Responsável também por fazer a transferência de dados
+normalmente a classe principal tem um construtor que passa esse DTO
+exemplo Endereço tem um construtor que passa EnderecoDTO
+
+Sempre que abrir uma conexão, fizer uma requisição tem que fechar a conexão
+
+ficar abrindo e fechando conexões se torna custoso em aplicacões
+pool de conexões = local que guarda conexões aberta. Quando precisarmos pegar uma conexão de lá para fazer uma requisição e quando terminarmos devolvemos para esse local
+
+HikariCP = biblioteca que permite os pools
+ private static HikariDataSource dataSource;
+
+    static {
+        HikariConfig config = new HikariConfig();
+        config.setJdbcUrl("jdbc:mysql://localhost:3306/byte_bank");
+        config.setUsername("root");
+        config.setPassword("10062006Dudu");
+        config.setMaximumPoolSize(10);
+
+        dataSource = new HikariDataSource(config);
+    }
+
+ public Connection openConnection() {
+        try {
+            return dataSource.getConnection();
+        } catch (SQLException e) {
+            throw new RuntimeException(e.getMessage());
+        }
+    }
+na classe ConnectionFactory
+
+
+se tentamos fazer uma transferência em um banco e por algum motivo ocorre um erro, quando olhamos nosso saldo, o valor não é alterado. Então, como podemos replicar esse comportamento no nosso código?
+Podemos alcançar esse resultado trabalhando com transações.
+public void depositar(int numeroConta, BigDecimal valor) {
+
+        String sql = "UPDATE conta SET saldo = saldo + ? WHERE numero = ?";
+
+        try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+            connection.setAutoCommit(false);
+            preparedStatement.setBigDecimal(1, valor);
+            preparedStatement.setInt(2, numeroConta);
+
+            preparedStatement.executeUpdate();
+            connection.commit();
+            preparedStatement.close();
+            connection.close();
+        } catch (SQLException e) {
+            try {
+                connection.rollback();
+                connection.close();
+            } catch (SQLException ex) {
+                throw new RuntimeException(ex);
+            }
+            throw new RuntimeException(e.getMessage());
+        }
+    }
+
+Em primeiro lugar, usamos o método de Connection chamado setAutoCommit() e passamos false como parâmetro. Com essa alteração, informamos que chamaremos explicitamente o commit e o rollback.
+
+Após chamar o método execute(), se a operação obteve sucesso, será chamado o conn.commit( ) e a alteração será realizada no banco. Se commit() não for chamado, a modificação não acontecerá.
+
+Caso ocorra algum erro, o catch será executado e o método rollback()vai desfazer a operação ou operações, se forem mais de uma.
+

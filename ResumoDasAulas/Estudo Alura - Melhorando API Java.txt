@@ -1,0 +1,86 @@
+Estudo Alura - Melhorando API Java
+
+Controller = controlar o fluxo da aplicação
+
+@Entity: Marca a classe como uma entidade persistente e mapeada para uma tabela no banco de dados.
+@Table: Especifica o nome, esquema e outras características da tabela no banco de dados. É opcional, e se não for fornecida, o JPA usa um nome padrão baseado na classe.
+
+service = regras de negócio
+
+O @Autowired é uma anotação do Spring Framework usada para injeção de dependência automática. Ela permite que o Spring injete os beans necessários nas classes gerenciadas pelo Spring, como controladores, serviços e repositórios.
+
+O spring vai injetar esse atributo na classe
+
+na service não pode tratar coisas do protocolo http
+
+se tiver erros de negócio ele envia exceções
+o controller captura essa exceção e retorna um response.entity de erro
+
+na service ele salva no banco/ envia email faz tudo
+
+Controller
+try {
+            this.adocaoService.solicitar(adocao);
+            return ResponseEntity.ok("Adoção solicitada com sucesso!");
+        } catch (ValidacaoException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+
+se deu tudo ok ele retorna ok
+se der excepetion retorna um erro 400 e o motivo
+
+ctrl + y volta pro código final
+
+não é uma boa prática a controller receber um entidade como paramêtro
+por conta disso criamos um DTO e passamos eles
+
+f2 renomear
+
+Padrão Strategy
+
+validações em diferentes classes ao invés de ser tudo na service
+sempre com o nome do método igual e o mesmo paramêtro
+
+pois vamos criar uma interface com o nome do método e com o mesmo paramêtro
+e implementar em cada uma delas
+
+public interface ValidacaoSolicitacaoAdocao {
+
+    void validar(SolicitacaoAdocaoDTO dto);
+
+@Component
+public class TutorValidacaoComLimiteAdocoes implements ValidacaoSolicitacaoAdocao {
+
+    @Autowired
+    private AdocaoRepository adocaoRepository;
+
+    public void validar(SolicitacaoAdocaoDTO dto) {
+
+        Long totalAdocoes = adocaoRepository.countByTutorIdAndStatus(dto.idTutor(), StatusAdocao.APROVADO);
+        if (totalAdocoes == 5) {
+            throw new ValidacaoException("Tutor chegou ao limite máximo de 5 adoções!");
+        }
+    }
+
+na service vamos criar uma List que aceita todo mundo que implementar a interfaces
+com a anotação Autowired o spring vai procurar todas as classes que implementam essa interface e vai instanciar cada uma delas colocar na lista e injetar a lista
+(Chain of responsibility)
+
+ @Autowired
+    private List<ValidacaoSolicitacaoAdocao> validacoes;
+
+Quando tem uma entidade que tem outras entidade nela quando não configura é um carregamento Eager
+
+ou seja quando pegar um dado de uma tabela ele irá carregar as outras tabelas também isso ocorre quando são cardinalidades ToOne no final
+
+Porém é má pratica por conta disso colocaram lazy 
+ou seja só ira fazer o inner join buscar na outra tabela sob demanda
+
+exemplo temos a Entidade adoção e dentro da tabela adoção tem relacionamento com pet e tutor 
+OneToOne e ManyToOne ou seja se não configurarmos para Lazy ele irá carregar o pet e tutor mesmo que eu só queira a data de adoção
+
+Quando é ManyToMany ou oneToMany o padrão já é LAZY então não precisamos declarar 
+
+A JPA exige que todo construtor tenha um construtor padrão  
+
+é comum ter dois Repository na service e pode ter duas services na controller também

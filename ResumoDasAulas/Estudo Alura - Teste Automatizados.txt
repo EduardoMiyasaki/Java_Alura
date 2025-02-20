@@ -1,0 +1,136 @@
+Estudo Alura - Teste Automatizados JUnit e Mockito
+
+Faz a comparação da chamada com o valor esperado
+Assertions
+
+Podemos utilizar @DisplayName()
+para dar uma descrição do que o teste vai fazer
+@DisplayName("Probabilidade alta para gatos jovens com peso baixo")
+
+Padrão Triple A
+Arrange =  preparar o ambiente para chamar o método
+
+ACT = chamar o método
+
+Assert = Verificar se os resultado batem
+
+ Arrange (Preparar): Nesta etapa, são realizadas todas as configurações iniciais necessárias para que o cenário de teste possa ser executado. Isso pode incluir a criação de objetos, definição de variáveis, configuração de ambiente e qualquer outra preparação necessária para que o teste seja executado em um estado específico.
+
+Act (Agir): Nesta fase, a ação que se deseja testar é executada. Pode ser a chamada de um método, uma interação com a interface do usuário ou qualquer outra operação que seja o foco do teste.
+
+Assert (Verificar): Na última etapa, os resultados são verificados em relação ao comportamento esperado. É onde se avalia se o resultado obtido após a ação está de acordo com o que se esperava do teste. Caso haja alguma discrepância entre o resultado real e o esperado, o teste falhará.
+
+Quando tiver um método que acessa o banco de dados(repository) é essencial utilizar o mockito para simular um banco de dados
+
+ @Mock
+    private PetRepository petRepository;
+
+@InjectMocks
+    private ValidacaoPetDisponivel validacao;
+
+o Spring vai saber que é para pegar o mock(duble) da petRepository e injetar na classe ValidacaoPetDisponivel
+
+aqui estamos avisando que é para o mockito fazer o que foi falado acima
+
+@ExtendWith(MockitoExtension.class)
+class ValidacaoPetDisponivelTest
+
+temos que passar o ExtendsWith(MockitoExtension.class)	
+
+BDDMockito.given() = dado um determinado cenário faça isso
+
+ @Mock
+    private Pet pet;
+
+ @Mock
+private SolicitacaoAdocaoDto dto;
+
+dado a ação de procurar um pet no banco de dados retorna esse pet
+BDDMockito.given(petRepository.getReferenceById(dto.idPet())).willReturn(pet);
+
+
+Uso do Mockito para simular o banco de dados:Quando temos um método que acessa o banco de dados através de um repositório, é essencial usar o Mockito para simular esse comportamento. Isso nos permite realizar testes unitários sem a necessidade de um banco de dados real, o que torna os testes mais rápidos e isolados.
+
+Anotações @Mock e @InjectMocks: Ao usar @Mock, você está criando um dublê (mock) do PetRepository. E com @InjectMocks, você está informando ao Mockito que ele deve injetar esse mock na instância da classe ValidacaoPetDisponivel. Assim, o Spring não precisa saber que estamos usando um mock, pois o Mockito cuida disso para nós.
+
+Uso da anotação @ExtendWith(MockitoExtension.class): Essa anotação é necessária para que o JUnit saiba que queremos usar o Mockito para gerenciar os mocks e injeções. Sem essa anotação, o Mockito não saberia que deve interagir com a classe de teste.
+
+ @Test
+    @DisplayName("Salvar a adoção no banco")
+    void deveriaSalvarAdocaoAoSolicitar() {
+
+        adocaoService.solicitar(dto);
+		
+	verifica se o método save foi chamada com qualquer paramêtro
+        then(adocaoRepository).should().save(AdocaoCaptor.capture);
+    }
+
+ @Captor
+    private ArgumentCaptor<Adocao> adocaoCaptor;
+O ArgumentCaptor é utilizado para capturar o argumento que está sendo passado para um método em um mock, permitindo que você verifique se o objeto que foi salvo no banco de dados é o que você esperava. No entanto, ele não garante que o valor inserido no banco não seja null.
+
+then(adocaoRepository).should().save(adocaoCaptor.capture());
+        Adocao adocaoSalva = adocaoCaptor.getValue();
+
+@Mock
+Um mock é um objeto simulado que substitui um objeto real durante a execução dos testes.
+
+@Spy
+Um spy, por outro lado, é um objeto real que é usado durante os testes, mas também permite a observação de seu comportamento. Ao contrário dos mocks, os spies mantêm o comportamento original do objeto sendo espionado, a menos que seja especificamente substituído.
+
+@Stub
+
+
+
+Quando você utiliza o método then().should() você está verificando se o método que você passou após o should foi chamado
+e dentro do then você passa a classe que o método should vai mandar
+
+Dentro de BDDMockito você manipular uma respota 
+
+Para testar uma controller não é uma boa prática instanciar a controller
+
+por isso passamos essas anotações para a classe
+@SpringBootTest
+@AutoConfigureMockMvc
+
+Para configurar uma simulação da aplicação
+
+@Autowired
+    private MockMvc mvc;
+
+mockMvc = simulador da aplicação
+
+String json = "{}"; passando um json sem valores
+
+var response = mvc.perform(
+                post("/adocoes")
+                        .content(json)
+                        .contentType(MediaType.APPLICATION_JSON)
+        ).andReturn().getResponse();
+
+mvc.perform = passando que o mvc vai criar uma instancia da aplicação e vai disparar uma requisição
+post() = tipo da requisição e dentro do parênteses o requestMapping 
+.content() = o conteúdo que vai na requisição como é do tipo post
+.contentType = o modelo do corpo que vai ser enviado
+.andReturn() = informando que vai ter que ter um retorno
+.getResponse() = pegando a resposta
+
+Assertions.assertEquals(400, response.getStatus());
+
+Anotações @SpringBootTest e @AutoConfigureMockMvc: Essas anotações são fundamentais para configurar o contexto do Spring durante os testes. O @SpringBootTest inicia o contexto da aplicação, enquanto o @AutoConfigureMockMvc permite que o MockMvc seja injetado, possibilitando simular requisições HTTP.
+
+MockMvc: Essa classe é um simulador que permite que você teste seus controladores sem precisar iniciar um servidor real. Isso torna os testes mais rápidos e isolados
+
+mvc.perform  Esse método é o ponto central onde a requisição é realmente simulada. Ele cria uma instância da aplicação e dispara a requisição conforme configurado
+
+  @MockBean
+    private AdocaoService adocaoService;
+
+para quando disparar a requisição não ir na service de verdade é pra ir num duble que o spring vai criar
+
+se eu passar no assertions  response.getContentAsString()
+ele vai retornar o "Adoção solicitada com sucesso!"
+ ResponseEntity.ok("Adoção solicitada com sucesso!"); 
+
+
+
