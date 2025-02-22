@@ -1,0 +1,170 @@
+Estudo Alura sozinho - Java: trabalhando com lambdas, streams e Spring Framework
+A interface CommandLineRunner representa uma tarefa a ser executada após a inicialização do Spring Boot, ou seja, permite definir código para ser executado automaticamente quando o aplicativo é iniciado.
+
+A interface CommandLineRunner é bem versátil e pode ser usada em diversas situações. Conforme mencionado anteriormente, ela pode ser usada para carregar dados para um banco de dados. Também pode ser usada para iniciar recursos, como conexões de rede, e para checar a integridade de determinados componentes ou serviços com os quais a aplicação irá interagir.
+
+É importante lembrar que a CommandLineRunner é executada apenas na inicialização da aplicação, então não deve ser utilizada para tarefas que precisam ocorrer periodicamente durante o funcionamento da aplicação, para isso, Spring oferece outras ferramentas que serão mais adequadas.
+
+Vamos imaginar uma situação onde temos que carregar uma grande quantidade de dados em nosso banco de dados assim que nossa aplicação Spring iniciar. Bem, manualmente isso seria desafiador e demorado, no entanto, a interface CommandLineRunner torna essa tarefa extremamente mais simples.
+
+Utilizando @JsonProperty quando você desserializa um json ele ira passar o valor da chave valor para o campo
+correto
+porem quando ele serializar um json ele ira passar com o nome anterior
+ex:
+@JsonProperty("imdbVotes") String votos
+quando for desseariliza ele vai passar os dados para votos
+mas quando for serializar vai criar um campo chamado imdbVotes ao invés de votos
+
+o @JsonAlias não faz isso, vai criar o campo de acordo com o atributo no caso seria votos, ele só le do json
+
+dentro dessa anotação podemos colocar um Array então se for procurar em outra API podemos capturar os nome sem problemas
+@JsonAlias({"Title","Titulo"}) String titulo
+
+Quando o JSON é serializado, isto é, convertido de objetos Java para JSON, o nome especificado em @JsonProperty será usado como a chave para o campo no JSON de saída
+ Da mesma forma, quando o JSON é desserializado (convertido de JSON para objetos Java), a biblioteca procura pelo nome especificado em @JsonProperty para mapear o valor JSON para o campo Java.
+
+public interface IConverteDados {
+
+    <T> T obterDados(String json, Class<T> classe);
+}
+
+criamos um método em uma interface, que irá retornar alguma coisa, porém não sabemos ainda
+e também criamos no paramêtro a classe que nós queremos converter porém não sabemos de que tipo ela é ainda
+
+public class ConverterDados implements IConverteDados {
+
+    private ObjectMapper mapper = new ObjectMapper();
+
+    @Override
+    public <T> T obterDados(String json, Class<T> classe) {
+        try {
+            return mapper.readValue(json, classe);
+        } catch (JsonProcessingException e) {
+            throw new ValidacaoException(e.getMessage());
+        }
+    }
+
+@JsonIgnoreProperties(ignoreUnknown = true) para o Jackson ignorar todos os campos que ele não encontrar similiaridade entre o json e a classe
+
+Em Java, generics permitem criar classes, interfaces e métodos que podem trabalhar com tipos desconhecidos ou parâmetros genéricos.Eles fornecem uma forma de escrever código flexível e reutilizável, tornando-o independente de tipos específicos e permitindo que ele funcione com diferentes tipos de dados.
+
+A verificação é realizada usando os operadores instanceof e os operadores de pattern matching (instanceof com pattern variables) disponíveis a partir do Java 16
+if (this.conteudo instanceof Integer c && valor instanceof Integer i) {
+    Integer resultado = c + i;
+    return (T) resultado;
+}
+
+o Spring por padrão quando chama o starter ele ja chama a biblioteca Jackson
+
+List: Uma coleção ordenada que permite elementos duplicados. Os elementos são acessados por índices.
+
+Set: Uma coleção que não permite elementos duplicados e normalmente não possui ordem definida.
+
+Queue: Uma coleção que representa uma fila, onde os elementos são adicionados no final e removidos do início.
+
+Map: Uma coleção de pares chave-valor, onde cada chave é única e mapeada para um valor correspondente.
+
+final= não pode ser alterado futuramente(Tem que ser tudo maisculo o nome da variável e separando as palavras por underscore (_),)
+private final String ENDERECO = "https://www.omdbapi.com/?t=";
+
+Além disso, é uma boa prática declarar as constantes como static caso elas pertençam a uma classe e sejam compartilhadas por vários objetos. Dessa forma, as constantes podem ser acessadas diretamente através do nome da classe, sem a necessidade de instanciar um objeto.
+
+System.out.println(“Eu trabalho na empresa “ +  ExemploConstantes.NOME_EMPRESA);
+
+Stream é parecido com forEach() no sentido de percorrer todos os dados de uma lista
+porem o Stream é mais flexível e poderoso pois você pode fazer encadear operações como filter,map, sorted
+
+  listaTemporadas.stream().sorted(Comparator.comparingInt(TemporadaDTO::numero));
+
+        List<String> nomes = Arrays.asList("Jaque", "Iasmin", "Paulo", "Rodrigo");
+
+        List<String> nomeComOFinal = nomes.stream().filter(n -> n.endsWith("o")).toList();
+        System.out.println(nomeComOFinal);
+
+        nomes.stream()
+                .sorted()
+                .filter(n -> n.startsWith("I"))
+                .limit(3)
+                .map(n-> n.toUpperCase())
+                .forEach(System.out::println);
+
+Tudo que gera um Stream novo é chamado de operação intermediária
+tudo que faz algo com o Stream é chamado de operação final
+
+Filter: permite filtrar os elementos da stream com base em uma condição. Por exemplo,
+
+List<Integer> numeros = Arrays.asList(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
+List<Integer> numerosPares = numeros.stream().filter(n -> n % 2 == 0).collect(Collectors.toList()); // pegando só os pares
+System.out.println(numerosPares); // Output: [2, 4, 6, 8, 10]
+
+Map: permite transformar cada elemento da stream em outro tipo de dado. Por exemplo, podemos transformar uma lista de strings em uma lista de seus respectivos tamanhos.
+List<String> palavras = Arrays.asList("Java", "Stream", "Operações", "Intermediárias");
+List<Integer> tamanhos = palavras.stream() .map(s -> s.length()) .collect(Collectors.toList());
+System.out.println(tamanhos); // Output: [4, 6, 11, 14]
+
+As operações finais são aquelas que encerram a stream e retornam um resultado concreto. Algumas operações finais comuns são o forEach, collect e count.
+
+Collect: permite coletar os elementos da stream em uma coleção ou em outro tipo de dado. Por exemplo, podemos coletar os números pares em um conjunto.
+Set<Integer> numerosPares = numeros.stream().filter(n -> n % 2 == 0).collect(Collectors.toSet());
+System.out.println(numerosPares); // Output: [2, 4, 6, 8, 10]
+
+Existem muitas outras disponíveis, como distinct (que remove elementos duplicados), limit (que limita o número de elementos da stream), skip (que pula os primeiros elementos da stream), reduce (que combina os elementos da stream em um único resultado) e muitas outras.
+
+ listaEpisodios.stream()
+                .map(e -> new DadosEpisodio(e.titulo(), e.numero(), e.avaliacao().equals("N/A")? "0.0": e.avaliacao(), e.dataLancamento()))
+                .sorted(Comparator.comparing(DadosEpisodio::avaliacao))
+                .skip(listaEpisodios.size() - 5)
+                .forEach(System.out::println);
+
+então criei com um Map um novo Stream passando que se o valor for NA substituise por 0 
+e após isso ordenava
+
+FlatMap = usado para transformar cada elemento de um stream em outro stream
+
+ List<DadosEpisodio> dadosEpisodios = temporadas.stream()
+                .flatMap(t -> t.episodios().stream())
+                .collect(Collectors.toList())	;
+
+maneira correta de aparecer os 5 melhores episódios
+ignorando os NA e ordenando
+        dadosEpisodios.stream()
+                .filter(e -> !e.avaliacao().equalsIgnoreCase("N/A"))
+                .sorted(Comparator.comparing(DadosEpisodio::avaliacao).reversed())
+                .limit(5)
+                .forEach(System.out::println);
+
+
+Filtrando por data
+
+int ano = leitura.nextInt();
+        LocalDate dataBusca = LocalDate.of(ano, 1, 1);
+        DateTimeFormatter formatadorData = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+        episodios.stream()
+                .filter(e -> e.getDataLancamento() != null && e.getDataLancamento().isAfter(dataBusca))
+                .forEach(e -> {
+                    System.out.printf("""\nTemporada: %d  Episódio: %sData de Lançamento: %s""",e.getTemporada(), e.getTitulo(), e.getDataLancamento().format(formatadorData));
+                });
+
+
+DateTimeFormatter formatadorData = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+MM/dd/yyyy	19/11/2022
+dd-M-yyyy hh:mm:ss	19-11-22 12:07:23
+dd MMMM yyyy	19 de novembro de 2022
+dd MMMM yyyy zzzz	19 de novembro de 2022, Horário Padrão de Brasília
+E, dd MMM yyyy HH:mm:ss z	Sáb, 19 de novembro de 2022, 12:07:23 BRT
+
+Mês completo	MMMM	Setembro
+Mês abreviado	MMM	Set.
+Mês numérico	MM	09
+
+para você saber o passo a passo do seu stram você pode usar a função peek para saber o que está acontecendo
+ .stream().filter(e -> !e.avaliacao().equalsIgnoreCase("N/A"))
+                .peek(e -> System.out.println("Primeiro filtro(N/A) " + e))
+
+ A função peek é usada para "espiar" os elementos da stream sem alterá-los, o que pode ser muito útil para depuração. Essa função vai receber cada elemento da stream e realizar alguma operação de efeito colateral (como imprimir o elemento), mas vai devolver o mesmo elemento sem alterar nada.
+
+Optional é um objeto container que pode ou não conter valor nulo
+Optional<Episodio> episodioBuscado = episodios.stream()
+               .filter(e -> e.getTitulo().contains(trechoTitulo))
+               .findFirst();
+se eu buscar um episódio e não achar o episódioBuscado ficará null se der certo ele fica com o valor do epsisódio

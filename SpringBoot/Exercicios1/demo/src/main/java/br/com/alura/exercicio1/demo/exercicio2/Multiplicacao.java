@@ -1,2 +1,3 @@
-package br.com.alura.exercicio1.demo.exercicio2;public interface Multiplicacao {
+package br.com.alura.exercicio1.demo.exercicio2;
+public interface Multiplicacao {
 }
