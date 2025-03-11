@@ -1,0 +1,102 @@
+Estudo Alura sozinho - Java: Persistência de dados e consultas com Spring Data JPA: PT2
+
+Derived queried = consultas derivadas
+
+existsByStatusAndId(String status, Long id)
+
+Na JPA utilizamos o nome do atributo no java e não da coluna no banco
+
+A estrutura básica de uma derived query na JPA consiste em:
+
+verbo introdutório + palavra-chave “By” + critérios de busca
+Verbos introdutórios = find, read, query, count e get.
+
+Is, para ver igualdades
+Equals, para ver igualdades (essa palavra-chave e a anterior têm os mesmos princípios, e são mais utilizadas para a legibilidade do método).
+IsNot, para checar desigualdades
+IsNull, para verificar se um parâmetro é nulo
+
+Palavras relativas à similaridade:
+
+Containing, para palavras que contenham um trecho
+StartingWith, para palavras que comecem com um trecho
+EndingWith, para palavras que terminem com um trecho
+Essas palavras podem ser concatenadas com outras condições, como o ContainingIgnoreCase, para não termos problemas de Case Sensitive.
+
+Palavras relacionadas à comparação:
+
+LessThan, para buscar registros menores que um valor
+LessThanEqual, para buscar registros menores ou iguais a um valor
+GreaterThan, para identificar registros maiores que um valor
+GreaterThanEqual, para identificar registros maiores ou iguais a um valor
+Between, para saber quais registros estão entre dois valores
+
+Distinct, para remover dados duplicados
+First, para pegar o primeiro registro
+Top, para limitar o número de dados
+
+Native query não é recomendado
+@Query(value = "SELECT * FROM serie WHERE serie.total_temporadas <= ? and serie.avaliacao >= ?", nativeQuery = true)
+
+JPQL
+@Query("SELECT s FROM Serie s WHERE s.totalTemporadas <= :totalTemporadas and s .avaliacao >= :avaliacao")
+   List<Serie> seriesPorTemporadaEAvaliacao(int totalTemporadas, double avaliacao);
+
+quando for pegar um dado do paramêtro utiliza dois pontos:nomeVariavel
+
+A JPQL é uma linguagem de consulta orientada a objetos que foi definida como parte da especificação JPA (Java Persistence API). Ela é usada para fazer consultas em bancos de dados relacionais de maneira similar ao SQL, mas com uma diferença fundamental: em vez de trabalhar com tabelas e colunas, como no SQL, a JPQL trabalha com classes e atributos que fazem parte do seu modelo de domínio.
+
+String jpql = "select c from Customer c where c.name like :name";
+
+O SQL Nativo, por outro lado, é a linguagem padrão usada para interagir com bancos de dados relacionais. Com ela, você escreve consultas que são específicas para a estrutura e sintaxe do banco de dados que está usando.
+
+@Query(value = "SELECT * FROM Customer WHERE name LIKE '%John%'", nativeQuery = true)
+
+Porém, há a questão da portabilidade. Como a JPQL é uma abstração de alto nível, ela é compatível com qualquer banco de dados que suporte a especificação JPA. Se você precisar mudar seu aplicativo de um banco de dados para outro, a maioria das suas consultas JPQL continuarão funcionando sem alterações.
+
+A escolha entre JPQL e SQL Nativo muitas vezes depende das necessidades do seu projeto. Se a portabilidade é uma prioridade e se o seu modelo de domínio é complexo e rico de informações, a JPQL pode ser a melhor escolha. Se o desempenho é uma prioridade e você precisa de controle detalhado sobre suas consultas, o SQL Nativo pode ser a melhor opção.
+
+  @Query("SELECT e FROM Serie s INNER JOIN s.episodios e" +
+           " WHERE s.titulo ILIKE %:trechoSerie% AND e.titulo ILIKE %:trechoEpisodio%")
+   List<Episodio> listarEpisodiosPorTrechoDaSerieEspecifica(String trechoSerie , String trechoEpisodio);
+
+ILIKE = Faz a função de ignore CASE
+
+LIKE é um comando SQL usado na cláusula WHERE para procurar um padrão específico em uma coluna. Em outras palavras, é uma maneira de fazer uma pesquisa em uma tabela, da mesma maneira que você pode usar um filtro de pesquisa em uma planilha do Excel, ou utilizar o método contains() do Java.
+
+O 'pattern' é o padrão que você está procurando. Para definir esse padrão, você usa os caracteres curinga % e _. O % substitui zero ou mais caracteres, enquanto _ substitui um único caractere.
+
+mas onde se encaixa o comando ILIKE que utilizamos em aula? O comando LIKE é sensível a maiúsculas e minúsculas em alguns bancos de dados. Portanto, se você quiser uma busca que não leve isso em consideração, como se fosse o IgnoreCase em Java, você deve utilizar o ILIKE.
+
+   @Query("SELECT e FROM Serie s INNER JOIN s.episodios e WHERE s.titulo ILIKE %:trechoSerie% AND e.titulo ILIKE %:trechoEpisodio%")
+   List<Episodio> listarEpisodiosPorTrechoDaSerieEspecifica(String trechoSerie , String trechoEpisodio);
+
+   @Query("SELECT e FROM Serie s INNER JOIN s.episodios e WHERE s = :serie ORDER BY e.avaliacao DESC limit 5")
+   List<Episodio> listandoTop5EpisodiosDeUmaSerie(Optional<Serie> serie);
+
+ @Query("SELECT e FROM Serie s INNER JOIN s.episodios e WHERE s = :serie AND YEAR(e.dataLancamento) >= :anoLancamento")
+    List<Episodio> episodiosPorSerieAposAno(Optional<Serie> serie, int anoLancamento);
+
+o código, mappedBy = "artista" na classe Artista indica que o atributo artista na classe Musica é o responsável por gerenciar o relacionamento. Isso evita a duplicação de informações no banco de dados e garante que a JPA saiba como as tabelas estão relacionadas.
+
+O mappedBy é um atributo usado na anotação @OneToMany para indicar qual atributo na classe relacionada (no caso, Musica) é o "dono" do relacionamento. Ele estabelece uma relação bidirecional, onde uma classe (Artista) tem uma lista de outra classe (Musica), e cada instância da segunda classe aponta para uma instância da primeira.
+
+if (artistaBuscado.isPresent()) {
+            List<Musica> listMusica = new ArrayList<>();
+            System.out.println("Insira o título da música");
+            String nomeMusica = teclado.nextLine();
+
+            Musica musica = new Musica(nomeMusica);
+            musica.setArtista(artistaBuscado.get());
+            listMusica.add(musica);
+            artistaBuscado.get().setMusicas(listMusica);
+            artistaRepository.save(artistaBuscado.get());
+        }
+
+Como é um relacionamento bidirecional precisa tratar dos dois lados
+musica.setArtista()
+artista.setMusica()
+ @OneToMany(mappedBy = "artista", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    private List<Musica> musicas = new ArrayList<>();
+
+e como está cascade vai salvar a música

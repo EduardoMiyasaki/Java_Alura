@@ -167,4 +167,31 @@ Optional é um objeto container que pode ou não conter valor nulo
 Optional<Episodio> episodioBuscado = episodios.stream()
                .filter(e -> e.getTitulo().contains(trechoTitulo))
                .findFirst();
-se eu buscar um episódio e não achar o episódioBuscado ficará null se der certo ele fica com o valor do epsisódio
+se eu buscar um episódio e não achar o episódioBuscado ficará null se der certo ele fica com o valor do episódio	
+O Optional é um único valor de container introduzido no Java 8. Ele pode conter um valor único ou nenhum valor. O principal uso do Optional é fornecer um tipo de retorno alternativo quando um método pode não retornar um valor.
+
+Uma operação útil para trabalhar com threads é o método findAny em coleções de dados. Esse método é utilizado para encontrar qualquer elemento que satisfaça uma determinada condição em uma coleção.
+
+ .collect(Collectors.groupingBy(Episodio::getTemporada,
+                        Collectors.averagingDouble(Episodio::getAvaliacao)));
+
+Agrupandos todos os episódios por temporada e fazendo a média das avaliações
+
+A classe DoubleSummaryStatistics é uma classe utilitária que permite calcular estatísticas como soma, média, valor mínimo e máximo, além do total de elementos em uma coleção de valores do tipo double. Ela possui métodos como getSum(), getAverage(), getMin(), getMax() e getCount(), que retornam os respectivos valores estatísticos.
+
+DoubleSummaryStatistics est = episodios.stream()
+                .filter(e -> e.getAvaliacao() > 0.0)
+                .collect(Collectors.summarizingDouble(Episodio::getAvaliacao));
+
+Streams infinitos, ou “infinite Streams”, são streams que não têm um tamanho definido. Eles são úteis quando queremos gerar uma sequência de números ou valores. Aqui está um exemplo de como criamos um Stream infinito com o método iterate:
+
+Stream.iterate(0, n -> n + 1)
+     .limit(10)
+     .forEach(System.out::println);
+
+O método flatMap é uma operação intermediária que é usada para transformar um Stream de coleções em um Stream de elementos. Aqui está um exemplo de como o flatMap é usado:
+
+Stream.reduce() é uma operação terminal que é utilizada para reduzir o conteúdo de um Stream para um único valor.
+List<Integer> numbers = List.of(1, 2, 3, 4, 5);
+Optional<Integer> result = numbers.stream().reduce(Integer::sum);
+result.ifPresent(System.out::println); //prints 15

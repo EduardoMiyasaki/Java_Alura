@@ -1,0 +1,39 @@
+Estudo Alura sozinho - Java: Criando sua primeira API e conectando ao front
+
+Servidor é justamente algo que oferta recursos aos clientes. No nosso caso, o recurso ofertado serão as séries que estão no nosso banco de dados. Ofertamos esses recursos com o uso da nossa API, ou “Interface de Programação de Aplicações”, traduzindo a sigla.
+
+Durante o curso, trabalharemos com uma API REST(Representational State Transfer, ou Transferência de Estado Representacional)
+
+APIs REST devem ser stateless, o que significa que as solicitações do cliente podem ser processadas independentemente umas das outras. Isso as torna altamente escaláveis, facilitando a vida dos desenvolvedores que trabalham em grandes projetos web, pois facilita o gerenciamento, a manutenção e o teste do software.
+
+No caso do Modelo, pense nele como o repositório de todos os livros que estão cadastrados no site. Ele guarda todas as informações, como título, autor e gênero do livro. Ele também tem todas as regras, como verificar se o livro já está cadastrado ou não.
+
+A Visualização é a página que você vê em seu navegador. Ela apresenta um formulário para adicionar um novo livro e uma lista de todos os livros já cadastrados.
+
+E finalmente, temos o Controlador. Digamos que você quer adicionar um novo livro. Você digita as informações no formulário e clica em 'Enviar'. Aqui é onde o Controlador entra em ação. Ele “pega” a informação que você digitou, verifica com o Modelo se o livro já existe (se for a regra) e, se tudo estiver certo, pede para o Modelo adicionar o novo livro. Em seguida, instrui a Visualização para mostrar a nova lista de livros com o que você acabou de adicionar.
+
+Quando o código é bem organizado, é muito mais fácil identificar problemas, fazer atualizações e adicionar novas funcionalidades. Por exemplo, se um dia você decidir que quer mudar a cor de fundo do seu site, você só precisa ir na Visualização e fazer a mudança. Se decidir mudar as regras para adicionar um novo livro, vai direto para o Modelo.
+
+Erro por conta de Referência circular, por conta que uma classe chama outra classe e a outra classe chama a mesma, causando problemas na serialização
+
+O Package by Layer é uma abordagem que diz que você deve dividir seu código com base em suas responsabilidades funcionais. Isso pode incluir coisas como 'model', 'view', 'controller', e 'repository'. Cada camada tem uma responsabilidade específica. Por exemplo, a camada 'view' manipula a interface do usuário, enquanto a camada 'controller' lidará com a lógica de negócio.
+
+CORS = A política de CORS (Cross-Origin Resource Sharing) é um mecanismo de segurança do navegador que restringe que páginas da web façam requisições para um domínio diferente do domínio que serviu a página web.
+
+Imagine que você está em um restaurante (seu navegador) e quer pedir comida de outro restaurante (outro domínio). Por padrão, o restaurante onde você está não permite que você faça isso, a menos que o outro restaurante (o servidor com os dados) diga que está tudo bem.
+
+No contexto da aula, o CORS impede que o front-end (rodando em "http://127.0.0.1:5501") faça requisições para o back-end (rodando em "http://localhost:8080") porque são considerados origens diferentes. Para resolver isso, o back-end precisa incluir cabeçalhos na resposta que informem ao navegador que é seguro permitir requisições do domínio do front-end.
+
+Resumidamente CORS é uma politica que não deixa acessar outros domínios ou seja outro site
+temos que configurar no back-end para mostrar pro domínio que é seguro
+
+@Controller: Usada para marcar uma classe como um controlador no padrão MVC (Model-View-Controller). Essa anotação é usada para receber requisições e manipular lógica de negócios.
+@RestController: Uma variação de @Controller, específica para APIs RESTful. Combina as anotações @Controller e @ResponseBody, indicando que cada método retorna um objeto serializado diretamente em JSON ou XML como resposta.
+@RequestMapping: Define mapeamentos entre URLs e métodos de controlador. Especifica as URLs para as quais um método do controlador deve responder e os métodos HTTP correspondentes (GET, POST, PUT, DELETE etc.).
+@GetMapping, @PostMapping, @PutMapping, @DeleteMapping: Atalhos para as operações HTTP GET, POST, PUT e DELETE, respectivamente, em métodos de controlador.
+@RequestParam: Usada para mapear os parâmetros de requisição HTTP para os parâmetros do método do controlador.
+@PathVariable: Usada para vincular variáveis de template de URL a parâmetros de métodos de controlador.
+@RequestBody: Utilizada para mapear o corpo da requisição HTTP para um objeto de entrada do método do controlador.
+@ResponseBody: Indica que o valor retornado pelo método do controlador deve ser usado diretamente como corpo da resposta HTTP.
+@Valid e @Validated: Utilizadas para ativar a validação de entrada no lado do servidor. Geralmente combinadas com anotações de validação, como @NotNull, @Size, @Min, @Max, entre outras.
+@CrossOrigin: Utilizada para configurar permissões de acesso a recursos de diferentes origens (CORS - Cross-Origin Resource Sharing).

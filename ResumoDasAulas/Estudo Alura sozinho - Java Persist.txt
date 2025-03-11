@@ -1,0 +1,214 @@
+Estudo Alura sozinho - Java: Persistência de dados e consultas com Spring Data JPA
+
+Passando o valor da avaliação de String para double e se for inválido transforma em 0
+ this.avaliacao = OptionalDouble.of(Double.parseDouble(dto.avaliacao())).orElse(0);
+       
+Enum de categorias
+
+ACAO("Action"),
+ROMANCE("Romance"),
+
+    private String categoriaOmdb;
+
+    Categoria(String categoriaOmdb) {
+        this.categoriaOmdb = categoriaOmdb;
+    }
+Pega o valor do texto e tenta comparar com os enum se achar retorna o enum se n lança exceção
+    public static Categoria fromString(String text) {
+        for (Categoria categoria : Categoria.values()) {
+            if (categoria.categoriaOmdb.equalsIgnoreCase(text)) {
+                return categoria;
+            }
+        }
+        throw new IllegalArgumentException("Nenhuma categoria encontrada");
+    }
+}
+
+passando o valor para o atributo gênero que é Categoria(private Categoria genero)
+this.genero = Categoria.fromString(dto.genero().split(",")[0].trim());
+split = pois vem uma lista de categorias separadas por virgula, então estamos criando um array
+como queremos o 1° valor passamos [0] e trim para ignorar valores vazios
+
+Um método estático é aquele que pode ser usado mesmo que você não tenha criado nenhum objeto da classe.
+
+O flatMap, por outro lado, é usado quando você tem uma estrutura de dados que contém coleções dentro de coleções. Ele não apenas transforma cada elemento, mas também "achata" a estrutura resultante em uma única stream. Isso é útil quando você tem uma lista de listas e quer obter uma única lista com todos os elementos
+
+Criação de um ENUM
+que quando criado já cria com ele dois valores
+public enum CodigoErro {
+
+    OK(200, "OK"),
+    CREATED(201, "Creado"),
+    NO_CONTENT(204,"Sem conteúdo"),
+    BAD_REQUEST(400, "A 404 status code only indicates that the resource is missing"),
+    NOT_FOUND(404, "Não encontrado"),
+    ERROR(500, "Erro do servidor");
+
+    private int codigo;
+    private String descricao;
+
+    CodigoErro(int codigo, String descricao) {
+        this.codigo = codigo;
+        this.descricao = descricao;
+    }
+
+Bancos de dados orientados a documentos são como armários com compartimentos flexíveis que permitem que você guarde objetos de tamanhos diferentes em um mesmo lugar. Eles armazenam as informações em formato de documentos, geralmente em JSON, que é um formato de dados leve, fácil de ler e trabalhar, capaz de representar estruturas de dados complexas.
+
+Os documentos podem conter diferentes campos e estruturas de dados, e os campos podem conter diferentes tipos de dados. O conjunto de documentos é flexível, ou seja, documentos no mesmo banco de dados não precisam ter a mesma estrutura.
+
+Por exemplo, você poderia ter um documento para um usuário que tem um campo de endereço, e outro documento para um usuário que não tem.
+
+Entidade: é uma classe Java criada para representar um objeto armazenado em um banco de dados. Cada entidade é mapeada para uma tabela do banco.
+EntityManager: é a interface central do JPA, que é usada para realizar as operações de persistência, ou seja, o CRUD. É a EntityManager que gerencia o ciclo de vida das entidades dentro de uma aplicação Java.
+JPQL: é a linguagem de consulta da JPA, que permite escrever consultas customizadas se aproveitando da orientação a objetos, ou seja, é como se fosse uma mistura de Java e SQL, ou uma linguagem SQL orientada a objetos. A utilização da JPQL é interessante pois ela encapsula a chamada real para o banco de dados, e permite inclusive a troca do banco de dados da aplicação sem a necessidade de alteração no código-fonte.
+
+@Entity
+Essa anotação é usada para marcar uma classe como uma entidade que deve ser mapeada para uma tabela de banco de dados. Cada entidade corresponde a uma tabela no banco de dados.
+
+@Table
+Por padrão, o Hibernate usa o nome da classe como o nome da tabela no banco de dados, fazendo apenas a conversão de padrão de nomenclatura do PascalCase para o SnakeCase, que é o padrão utilizado no banco de dados, no entanto, caso seja necessário que o nome da classe seja diferente do nome da tabela no banco de dados, é possível utilizar esta anotação que permite personalizar o mapeamento entre a classe de entidade e a tabela de banco de dados. Com ela, você pode especificar o nome da tabela, o esquema e as restrições de chave primária.
+
+@Id
+Marca um campo como a chave primária da entidade. O Hibernate usa essa anotação para identificar exclusivamente os registros no banco de dados.
+
+@GeneratedValue
+Usada em conjunto com @Id, essa anotação especifica como a chave primária é gerada automaticamente. Pode ser usada com estratégias como AUTO, IDENTITY, SEQUENCE ou TABLE, dependendo do banco de dados.
+
+@Column
+Similar ao que acontece na anotação @Table, o Hibernate utiliza o nome dos atributos e os converte como sendo idênticos aos nomes das colunas no banco de dados, e caso seja necessário utilizar nomes diferentes,você pode configurar o nome da coluna, bem como seu tipo, e se ela é obrigatória.
+
+@OneToMany e @ManyToOne
+Usadas para mapear relacionamentos de um-para-muitos e muitos-para-um entre entidades. Elas definem as associações entre as tabelas no banco de dados.
+
+@JoinColum
+A anotação @JoinColumn é usada para especificar a coluna que será usada para representar um relacionamento entre entidades. É frequentemente usada em conjunto com @ManyToOne e @OneToOne.
+@ManyToOne
+@JoinColumn(name = "autor_id")
+private Autor autor;
+
+@JoinTable é usada para mapear tabelas de junção em relacionamentos muitos-para-muitos. Ela especifica a tabela intermediária que liga duas entidades.
+@Entity
+public class Estudante {
+    @ManyToMany
+    @JoinTable(name = "inscricao",
+               joinColumns = @JoinColumn(name = "estudante_id"),
+               inverseJoinColumns = @JoinColumn(name = "curso_id"))
+    private List<Curso> cursos;
+}
+
+@Transient
+A anotação @Transient é usada para marcar uma propriedade como não persistente. Isso significa que a propriedade não será mapeada para uma coluna no banco de dados.
+
+@Enumerated
+A anotação @Enumerated é usada para mapear campos enumerados (enum) para colunas do banco de dados.
+
+@Entity
+@NamedQuery
+
+Essa anotação é usada para definir consultas JPQL nomeadas que podem ser reutilizadas em várias partes do código.
+@NamedQuery(name = "Cliente.findAll", query = "SELECT c FROM Cliente c")
+
+A anotação @Cascade é usada para especificar o comportamento de cascata das operações de persistência, como salvar e excluir, em relacionamentos. Por exemplo, você pode configurar para que as operações de salvar em cascata afetem entidades relacionadas.
+
+@Embeddable e @Embedded
+Essas anotações são usadas para representar tipos incorporados (embeddable types) que podem ser usados como componentes em entidades.
+
+A estratégia AUTO é a estratégia padrão de geração de ID JPA. Quando esta estratégia é utilizada, é a JPA que determina a melhor estratégia a ser usada, baseando-se no banco de dados específico que você está utilizando.
+
+A estratégia SEQUENCE utiliza um banco de dados de sequência para gerar IDs. Com essa estratégia, a sequência é incrementada cada vez que um ID é gerado, garantindo que cada ID seja único.
+
+A estratégia IDENTITY faz uso de colunas de auto incremento disponibilizadas por alguns bancos de dados. Cada vez que uma nova entidade é inserida no banco de dados, a coluna de ID auto incrementada é atualizada para gerar um novo ID.
+
+A estratégia TABLE. Essa estratégia utiliza uma tabela de banc
+
+Injeção de Dependências é um padrão de design que promove o desacoplamento entre classes, facilitando o gerenciamento, manutenção e testes do código. A ideia principal é que uma classe não precisa criar ou configurar suas próprias dependências. Em vez disso, essas dependências são fornecidas (ou injetadas) por um container de IoC (Inversion of Control), como o Spring.Injeção de Dependências é um padrão de design que promove o desacoplamento entre classes, facilitando o gerenciamento, manutenção e testes do código. A ideia principal é que uma classe não precisa criar ou configurar suas próprias dependências. Em vez disso, essas dependências são fornecidas (ou injetadas) por um container de IoC (Inversion of Control), como o Spring.o de dados separada para gerar IDs. Ela é menos eficiente do que as outras estratégias, mas tem a vantagem de ser portátil entre diferentes provedores de banco de dados.
+
+maneira manual de injetar dependências
+@Service
+public class ClienteService {
+
+    private final EmailService emailService;
+
+    public ClienteService(EmailService emailService) {
+        this.emailService = emailService;
+    }
+
+    public void notificarCliente(String mensagem) {
+        emailService.enviarEmail(mensagem);
+    }
+
+}
+
+Quando trabalhamos com relacionamentos em banco de dados, as chaves estrangeiras ficam localizadas nas tabelas que representam o lado "Muitos" da relação.
+
+One-To-Many (Um-Para-Muitos): Neste caso, a chave estrangeira fica na tabela que representa o lado "Muitos" da relação. Por exemplo, na relação entre Professor e Aluno, a chave estrangeira do Professor ficaria na tabela Aluno.
+
+Many-To-One (Muitos-Para-Um): Aqui também, a chave estrangeira fica na tabela que representa o lado "Muitos" da relação. Novamente, na relação Professor e Aluno, a chave estrangeira do Professor ficaria na tabela Aluno.
+
+Many-To-Many (Muitos-Para-Muitos): Neste caso, como é necessária uma tabela intermediária para representar a relação, as chaves estrangeiras ficam nesta tabela intermediária, referenciando as outras duas tabelas.
+
+One-To-One (Um-Para-Um): Neste tipo de relação, a chave estrangeira pode ficar em qualquer uma das duas tabelas, pois a relação é única entre elas.
+
+@Entity
+public class Post {
+    @Id
+    @GeneratedValue
+    private Long id;
+    private String title;
+    private String content;
+
+    @OneToMany(mappedBy = "post")
+    private List<Comment> comments = new ArrayList<>();
+}
+
+@Entity
+public class Comment {
+    @Id
+    @GeneratedValue
+    private Long id;
+    private String content;
+
+    @ManyToOne
+    @JoinColumn(name = "post_id")
+    private Post post;
+}
+No exemplo acima, definimos um relacionamento "OneToMany" de Post para Comentários e um relacionamento "ManyToOne" inverso de Comentários para Post. mappedBy = "post" no Post se refere ao campo post na classe Comentário.
+
+o utilizar o parâmetro cascade de um relacionamento, vemos que existem muitas variações de operações. Veremos na prática como cada uma delas pode ser utilizada
+
+Imagine que temos duas entidades: Post e Comment. Um Post pode ter muitos Comments. Se excluirmos um Post, o que acontecerá com os Comments relacionados a ele? Os tipos de cascata têm o objetivo de responder a este tipo de questões.
+
+PERSIST : se você persistir a entidade Post, os Comments relacionados também serão persistidos.
+MERGE : se você mesclar os detalhes de um Post, os Comments relacionados também serão mesclados.
+REMOVE : se você remover um Post, os Comments relacionados também serão removidos.
+REFRESH : se você atualizar o Post, também atualizará os Comments relacionados.
+DETACH : se um Post foi desanexado, todos os Comments relacionados serão desanexados também.
+ALL : se você executar qualquer uma das operações acima em um Post, essa operação será propagada para todos os Comments relacionados.
+
+
+@Entity
+public class Post {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL)
+    private List<Comment> comments = new ArrayList<>();
+
+    //getters and setters
+}
+
+@Entity
+public class Comment {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @ManyToOne
+    @JoinColumn(name = "post_id", nullable = false)
+    private Post post;
+
+    //getters and setters
+}
+
+De modo bem simples, Fetch Type define qual a estratégia será utilizada para carregar os dados do banco para sua aplicação.
