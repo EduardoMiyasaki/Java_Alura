@@ -1,0 +1,1 @@
+ALTER TABLE paciente DROP COLUMN logradouro, bairro, cep, complemento, numero, uf, cidade;
