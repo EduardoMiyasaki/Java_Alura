@@ -1,5 +1,6 @@
 package br.com.alura.screenmatch.controller;
 
+import br.com.alura.screenmatch.dto.EpisodioDTO;
 import br.com.alura.screenmatch.dto.SerieDTO;
 import br.com.alura.screenmatch.service.SerieService;
 import br.com.alura.screenmatch.validacao.ValidacaoException;
@@ -42,6 +43,46 @@ public class SerieController {
         try {
             SerieDTO serieDTO = serieService.obterSeriePeloID(id);
             return ResponseEntity.status(200).body(serieDTO);
+        } catch (ValidacaoException e) {
+            return ResponseEntity.status(404).build();
+        }
+    }
+
+    @GetMapping("/{id}/temporadas/todas")
+    public ResponseEntity<List<EpisodioDTO>> obterTemporadas(@PathVariable Long id) {
+        try {
+            List<EpisodioDTO> episodiosDTO = serieService.obterTemporadas(id);
+            return ResponseEntity.status(200).body(episodiosDTO);
+        } catch (ValidacaoException e) {
+            return ResponseEntity.status(404).build();
+        }
+    }
+
+    @GetMapping("/{id}/temporadas/{numeroTemporada}")
+    public ResponseEntity<List<EpisodioDTO>> obterEpisodiosPorTemporadas(@PathVariable Long id, @PathVariable int numeroTemporada) {
+        try {
+            List<EpisodioDTO> episodiosDTO = serieService.obterEpisodiosPorTemporadas(id, numeroTemporada);
+            return ResponseEntity.status(200).body(episodiosDTO);
+        } catch (ValidacaoException e) {
+            return ResponseEntity.status(404).build();
+        }
+    }
+
+    @GetMapping("/categoria/{categoria}")
+    public ResponseEntity<List<SerieDTO>> obterSeriesPorCategoria(@PathVariable String categoria) {
+        try {
+            List<SerieDTO> listaSerieDTO = serieService.obterSeriesPorCategoria(categoria);
+            return ResponseEntity.status(200).body(listaSerieDTO);
+        } catch (ValidacaoException e) {
+            return ResponseEntity.status(204).build();
+        }
+    }
+
+    @GetMapping("/{id}/temporadas/top")
+    public ResponseEntity<List<EpisodioDTO>> listarTop5Episodios(@PathVariable Long id) {
+        try {
+            List<EpisodioDTO> episodiosDTO = serieService.listarTop5Episodios(id);
+            return ResponseEntity.status(200).body(episodiosDTO);
         } catch (ValidacaoException e) {
             return ResponseEntity.status(404).build();
         }

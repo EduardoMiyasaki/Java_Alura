@@ -1,6 +1,6 @@
 package com.alura.loja.model;
 
-public enum Categoria {
+public enum CategoriaEnum {
 
     CELULAR("Celular"),
     INFORMATICA("Informatica"),
@@ -8,12 +8,12 @@ public enum Categoria {
 
     private String usuarioInforma;
 
-    Categoria(String usuarioInforma) {
+    CategoriaEnum(String usuarioInforma) {
         this.usuarioInforma = usuarioInforma;
     }
 
-    public static Categoria fromString(String text) {
-        for (Categoria categoria : Categoria.values()) {
+    public static CategoriaEnum fromString(String text) {
+        for (CategoriaEnum categoria : CategoriaEnum.values()) {
             if (categoria.usuarioInforma.equalsIgnoreCase(text)) {
                 return categoria;
             }

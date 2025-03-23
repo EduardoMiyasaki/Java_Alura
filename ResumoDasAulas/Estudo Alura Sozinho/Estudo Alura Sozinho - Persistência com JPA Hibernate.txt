@@ -1,0 +1,76 @@
+Estudo Alura sozinho - Persistência com JPA: Hibernate
+
+Entidade = Classe java que representa uma tabela
+
+EntityManager = gestor de entidades faz get, post, put
+
+// faz a conexão com o dataBase
+
+
+
+
+
+inicia uma transação
+em.getTransaction().begin();
+
+Faz o insert
+em.persist(produto)
+
+// commita a alteração
+em.getTransaction().commit();
+
+em.close();
+
+Por padrão quando uma atributo da classe é enum é mapeado como int
+
+por isso temos que informar no atributo que é ele do String por exemplo
+
+ @Enumerated(value = EnumType.STRING)
+    private Categoria categoria;
+
+TransientException = se você tiver um relacionamento e passar um valor que não existe no banco ainda
+ex:
+public Produto(ProdutoDTO dto) {
+        this.nome = dto.nome();
+        this.descricao = dto.descricao();
+        this.preco = dto.preco();
+        this.categoria = dto.categoria();
+    }
+
+um exemplo seria passar um valor de categoria, porem ele não existe no banco ainda
+
+Em um relacionamento bidirecional, ambas as entidades conhecem uma à outra. No seu caso, a classe Categoria sabe quais produtos pertencem a ela, e a classe Produto sabe a qual categoria pertence. Isso significa que, ao trabalhar com essas entidades, você deve garantir que ambas as referências estejam sempre corretas e atualizadas.
+
+Quando você adiciona um produto a uma categoria, é fundamental que você não apenas adicione o produto à lista de produtos da categoria, mas também que o produto tenha uma referência correta para a categoria à qual ele pertence. Isso garante que os dados estejam sempre sincronizados e evita problemas de integridade referencial.
+
+Adicionar um Produto a uma Categoria:
+Quando você cria um novo produto e deseja associá-lo a uma categoria, você deve fazer duas coisas:
+
+Adicionar o produto à lista de produtos da categoria.
+Definir a categoria do produto.
+
+Manter a consistência entre as entidades em um relacionamento bidirecional é crucial para garantir que os dados estejam corretos e que as operações funcionem como esperado. Ao adicionar um produto a uma categoria, sempre lembre-se de atualizar ambas as entidades para que elas reflitam a relação corretamente. 
+
+
+Ciclo de vida de uma entidade
+
+A primeira etapa é a transient 
+onde se você mudar o estado do objeto ele não irá alterar no banco de dados
+
+Transient não está sendo gerenciando pela JPA
+
+quando você chama o comando persist()
+
+A JPA fica no controle da entidade
+
+Quando você faz um comandos após o persist()
+A jpa ficará de olho e irá fazer a alteração
+
+quando você fizer o commit() você irá enviar todas as alterações feitas
+
+e depois tem o detached onde você irá fechar a conexão
+
+close() ou clear(); 
+
+merge() pega o o objeto no estado detached e retorna ele para managed
+

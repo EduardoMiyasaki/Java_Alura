@@ -1,4 +1,6 @@
 package com.alura.loja.repository;
 
-public class CategoriaRepository {
-}
+import com.alura.loja.model.Categoria;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+public interface CategoriaRepository extends JpaRepository<Categoria, Long>{}

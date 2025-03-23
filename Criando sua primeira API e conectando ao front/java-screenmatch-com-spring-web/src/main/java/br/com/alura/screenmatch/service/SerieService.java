@@ -1,7 +1,10 @@
 package br.com.alura.screenmatch.service;
 
+import br.com.alura.screenmatch.dto.EpisodioDTO;
 import br.com.alura.screenmatch.dto.SerieDTO;
+import br.com.alura.screenmatch.model.Categoria;
 import br.com.alura.screenmatch.model.DadosSerie;
+import br.com.alura.screenmatch.model.Episodio;
 import br.com.alura.screenmatch.model.Serie;
 import br.com.alura.screenmatch.repository.SerieRepository;
 import br.com.alura.screenmatch.validacao.ValidacaoException;
@@ -38,6 +41,45 @@ public class SerieService {
         } else {
             throw new ValidacaoException("Série não encontrada");
         }
+    }
+
+    public List<EpisodioDTO> obterTemporadas(Long id) {
+        Optional<Serie> serie = serieRepository.findById(id);
+
+        if (serie.isPresent()) {
+            Serie s = serie.get();
+
+            return s.getEpisodios().stream()
+                    .map(e -> new EpisodioDTO(e.getTemporada(), e.getNumero(), e.getTitulo()))
+                    .toList();
+        } else {
+            throw new ValidacaoException("Série não encontrada");
+        }
+    }
+
+    public List<EpisodioDTO> obterEpisodiosPorTemporadas(Long id, int numeroTemporada) {
+        List<Episodio> listaEpisodio = serieRepository.findByIdAndTemporada(id, numeroTemporada);
+
+        return listaEpisodio.stream()
+                .map(e -> new EpisodioDTO(e.getTemporada(), e.getNumero(), e.getTitulo()))
+                .toList();
+    }
+
+    public List<SerieDTO> obterSeriesPorCategoria(String genero) {
+        try {
+            Categoria categoria = Categoria.fromString(genero);
+            return converteDados(serieRepository.findByGenero(categoria));
+        } catch (IllegalArgumentException e) {
+            throw new ValidacaoException(e.getMessage());
+        }
+    }
+
+    public List<EpisodioDTO> listarTop5Episodios(Long id) {
+        List<Episodio> listaEpisodio = serieRepository.findTop5Episodios(id);
+
+        return listaEpisodio.stream()
+                .map(e -> new EpisodioDTO(e.getTemporada(), e.getNumero(), e.getTitulo()))
+                .toList();
     }
 
     private List<SerieDTO> converteDados(List<Serie> series) {

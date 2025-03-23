@@ -24,7 +24,7 @@ public interface SerieRepository extends JpaRepository<Serie, Long> {
 
     List<Serie> findByTotalTemporadasLessThanEqualAndAvaliacaoGreaterThanEqual(int totalTemporadas, double avaliacao);
 
-    @Query("SELECT s FROM Serie s WHERE s.totalTemporadas <= :totalTemporadas and s .avaliacao >= :avaliacao")
+    @Query("SELECT s FROM Serie s WHERE s.totalTemporadas <= :totalTemporadas and s.avaliacao >= :avaliacao")
     List<Serie> seriesPorTemporadaEAvaliacao(int totalTemporadas, double avaliacao);
 
     @Query("SELECT e FROM Serie s INNER JOIN s.episodios e WHERE e.titulo ILIKE %:trecho%")
@@ -42,10 +42,24 @@ public interface SerieRepository extends JpaRepository<Serie, Long> {
     @Query("SELECT e FROM Serie s INNER JOIN s.episodios e WHERE s = :serie AND YEAR(e.dataLancamento) >= :anoLancamento")
     List<Episodio> episodiosPorSerieAposAno(Optional<Serie> serie, int anoLancamento);
 
+    // errado
     List<Serie> findTop5ByOrderByEpisodiosDataLancamentoDesc();
 
-    @Query("SELECT s FROM Serie s INNER JOIN s.episodios e ORDER BY e.dataLancamento DESC LIMIT 5")
+    @Query("SELECT s FROM Serie s" +
+            " INNER JOIN s.episodios e" +
+            " GROUP BY s" +
+            "    ORDER BY MAX(e.dataLancamento) DESC LIMIT 5")
     List<Serie> findTop5Recentes();
 
+    @Query("SELECT e FROM Serie s" +
+            " INNER JOIN s.episodios e" +
+            " WHERE s.id = :id AND e.temporada = :numeroTemporada")
+    List<Episodio> findByIdAndTemporada(Long id, int numeroTemporada);
+
+    @Query("SELECT e FROM Serie s" +
+            " INNER JOIN s.episodios e" +
+            " WHERE s.id = :id" +
+            " ORDER BY e.avaliacao DESC LIMIT 5")
+    List<Episodio> findTop5Episodios(Long id);
 
 }

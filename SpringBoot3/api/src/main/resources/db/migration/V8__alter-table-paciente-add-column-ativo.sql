@@ -1,5 +1,3 @@
-ALTER TABLE medico ADD COLUMN ativo BOOLEAN;
+ALTER TABLE paciente ADD COLUMN ativo tinyint;
 
-ALTER TABLE medico ALTER COLUMN ativo SET DEFAULT TRUE;
-
-UPDATE medico SET ativo = true;
+UPDATE paciente SET ativo = 1;

@@ -169,7 +169,6 @@ public class Comment {
     private String content;
 
     @ManyToOne
-    @JoinColumn(name = "post_id")
     private Post post;
 }
 No exemplo acima, definimos um relacionamento "OneToMany" de Post para Comentários e um relacionamento "ManyToOne" inverso de Comentários para Post. mappedBy = "post" no Post se refere ao campo post na classe Comentário.

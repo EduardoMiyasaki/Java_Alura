@@ -1,0 +1,231 @@
+Estudo Alura Sozinho - Spring Boot 3 - Desenvolva uma API Rest em java
+
+Dentro do pom xml tem um local chamado parente
+é neste local que estamos declarando que o nosso pom "Herda" do spring boot
+
+static onde fica os arquivos css
+templates onde fica o HTML
+aplication properties onde fica as configurações
+
+Tratar o erro de CORS e permitir que as requisições que vem da porta 3000 sejam entregues na aplicação front-end
+@Configuration
+public class CorsConfiguration implements WebMvcConfigurer {
+
+    @Override
+    public void addCorsMappings(CorsRegistry registry) {
+        registry.addMapping("/**")
+            .allowedOrigins("http://localhost:3000")
+            .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD", "TRACE", "CONNECT");
+    }
+}
+
+Configuração correta para tratar o erro de CORS e permitir que sua aplicação front-end, que está rodando na porta 3000, acesse os dados da sua API.
+
+A classe CorsConfiguration que você escreveu está configurando o CORS para permitir requisições de qualquer endpoint da sua API (com addMapping("/**")) e especificando que a origem permitida é http://localhost:3000. Além disso, você também definiu quais métodos HTTP são permitidos.
+
+Embedabble Atributte = você explica para a jpa que tem uma 'entidade' não mapeada dentro da outra e que os dados dela podem ficar dentro da tabela
+
+@Entity
+public class Medico {
+
+@Embedded
+    private Endereco endereco;
+}
+
+@Embedded:ele pega os campos da classe Endereco e os coloca diretamente na tabela Medico, como se fossem colunas da própria tabela Medico
+
+e na classe Endereco tem que ter a anotação Embeddable
+
+A biblioteca do Lombok faz algumas funções automaticamente
+Basta passar as anotações
+
+@Entity
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@EqualsAndHashCode(of = "id")
+public class Medico {}
+
+Migrations = Ferramentas para monitorar as versões do banco
+
+Flyway serve para fazer o controle de versão do Banco de Dados
+para monitorar a evolução do Banco 
+
+você cria uma pasta em resources chamada dv/migrations
+
+Sempre interromper o projeto ao usar o migrations
+
+Padrão de nomenclatura Migrations
+V1__create-table-medico.sql
+
+CREATE TABLE medico(
+
+    id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    nome          VARCHAR(45)  NOT NULL,
+    email         VARCHAR(100) NOT NULL UNIQUE,
+    crm           VARCHAR(6)   NOT NULL UNIQUE,
+    especialidade VARCHAR(45)  NOT NULL
+
+);
+
+@Transactional
+ativa a transação com o banco de dados
+
+Bean Validation para marcar os campos com as validações
+
+@NotBlank = só para campos Strings
+@NotNull
+@Pattern = \\d para informar que são dígitos, chaves{} informado que o campo deve ter de 4 a 6 números
+@Valid = Avisando pro Spring junto com o Bean Validation entrar na classe e verificar se os dados estão corretos
+public Record DadosCadastroMedico(@NotBlank String nome, @NotBlank @Email String email, @NotNullEspecialidade especialidade,
+
+        @NotBlank
+        @Pattern(regexp = "\\d{4,6}")
+        String crm,
+
+        @NotNull
+        @Valid
+        DadosEndereco endereco) {
+}
+
+
+Documentação Oficial Bean Validation: https://jakarta.ee/specifications/bean-validation/3.0/jakarta-bean-validation-spec-3.0.html#builtinconstraints
+
+Migrations executadas não podem ser alteradas
+As Migrations devem ser imutáveis
+se precisar mudar o banco crie uma nova Migration 
+
+Tem como criar um segundo construtor no Record
+porem ele terá que chamar o construtor primário
+
+ public DadosListagemMedico(Medico medico){
+        this(medico.getNome(), medico.getEmail(), medico.getCrm(), medico.getEspecialidade());
+}
+
+
+Paginação Com Spring:
+A Classe Controller no método getAll tem um paramêtro agora
+da interface Pageable paginação
+
+public ResponseEntity<List<DadosListagemMedico>> getAllDoctors(Pageable paginacao) {
+  return ResponseEntity.status(200).body(medicoService.getAllDoctors(paginacao));
+
+e você vai passar essa interface no método findAll do repositor
+e agora iremos devolver uma Page<> com a classe que você quer devolver dentro
+
+public Page<DadosListagemMedico> getAllDoctors(Pageable paginacao) {
+        return medicoRepository.findAll(paginacao).map(DadosListagemMedico::new)
+
+para poder controlar o número de elementos e de qual página você quer buscar basta
+chamar na URL
+http://localhost:8080/medicos?size=1&page=2
+
+Normalmente se você não passa paramêtros na chamada Get com paginacao 
+o banco de dados devolve 20 registro sem ordenação
+
+Porem se você for na controller e passar antes do paramêtro a anotação @PageableDefault(size = 10, sort = {"nome"}) Pageable paginação
+agora só ira mostrar 10 registros por página
+se o usuário escrever esses paramêtros no método irá sobreescrever
+http://localhost:8080/medicos?sort=crm,desc&size=1&page=0
+nesse caso será ordenado pelo CRM e irá mostrar apenas um elemento
+
+spring.data.web.pageable.page-parameter=pagina
+spring.data.web.pageable.size-parameter=tamanho
+spring.data.web.sort.sort-parameter=ordem
+
+para mudar o nome do parâmetro
+
+No método de update ou put como passei o @Transactional eu não preciso ir no repository e salvar as novas informações
+
+@PutMapping("/{id}")
+    @Transactional
+    public ResponseEntity<DadosUpdateMedico> updateDoctor(@PathVariable Long id,
+                                                          @RequestBody @Valid DadosUpdateMedico dados){
+        try {
+            return ResponseEntity.status(200).body(medicoService.updateDoctor(id, dados));
+        } catch (ValidacaoException e) {
+            return ResponseEntity.status(404).build();
+        }
+    }
+
+public DadosUpdateMedico updateDoctor(Long id, DadosUpdateMedico dados) {
+
+        Optional<Medico> medico0 = medicoRepository.findById(id);
+
+        if (medico0.isEmpty()) {
+            throw new ValidacaoException("Médico não encontrado");
+        }
+        Medico medico = medico0.get();
+        // BeanUtils.copyProperties(dados, medico);
+	// Má prática, pois os campos vazios serão null agora no banco de dados
+	//seria melhor fazer verificações e depois alterar
+	if (dados.nome() != null) medico.setNome(dados.nome());
+        if (dados.email() != null) medico.setEmail(dados.email());
+        if (dados.telefone() != null) medico.setTelefone(dados.telefone());	
+	// medicoRepository.save(medico)
+        return dados;
+
+    }
+
+A própria jpa irá identificar que mudou os campos e irá fazer o update
+
+Mass Assignment Attack ou Ataque de Atribuição em Massa, em português, ocorre quando um usuário é capaz de inicializar ou substituir parâmetros que não deveriam ser modificados na aplicação. Ao incluir parâmetros adicionais em uma requisição, sendo tais parâmetros válidos, um usuário mal-intencionado pode gerar um efeito colateral indesejado na aplicação.
+
+@Transactional = identifica que você fez alterações e não precisa chamar o método save para fazer alterações
+
+
+Conforme orientado ao longo dessa aula é importante sempre parar o projeto ao criar os arquivos de migrations, para evitar que o Flyway os execute antes da hora, com o código ainda incompleto, causando com isso problemas.
+
+Entretanto, eventualmente pode acontecer de esquecermos de parar o projeto e algum erro acontecer ao tentar inicializar a aplicação. Nesse caso será exibido o seguinte erro ao tentar inicializar a aplicação:
+Exception encountered during context initialization - cancelling refresh attempt: org.springframework.beans.factory.BeanCreationException: Error creating bean with name 'flywayInitializer' defined in class path resource [org/springframework/boot/autoconfigure/flyway/FlywayAutoConfiguration$FlywayConfiguration.class]: Validate failed: Migrations have failed validation
+
+Perceba na mensagem de erro que é indicado que alguma migration falhou, impedindo assim que o projeto seja inicializado corretamente. Esse erro também pode acontecer se o código da migration estiver inválido, contendo algum trecho de SQL digitado de maneira incorreta.
+
+Para resolver esse problema será necessário acessar o banco de dados da aplicação e executar o seguinte comando sql:
+
+delete from flyway_schema_history where success = 0;
+
+
+O padrão de projeto DAO, conhecido também por Data Access Object, é utilizado para persistência de dados, onde seu principal objetivo é separar regras de negócio de regras de acesso a banco de dados. Nas classes que seguem esse padrão, isolamos todos os códigos que lidam com conexões, comandos SQLs e funções diretas ao banco de dados, para que assim tais códigos não se espalhem por outros pontos da aplicação, algo que dificultaria a manutenção do código e também a troca das tecnologias e do mecanismo de persistência.
+
+Vamos supor que temos uma tabela de produtos em nosso banco de dados. A implementação do padrão DAO seria o seguinte:
+
+Primeiro, seria necessário criar uma classe básica de domínio Produto:
+
+public class Produto {
+   private Long id;
+   private String nome;
+   private BigDecimal preco;
+   private String descricao;
+
+   // construtores, getters e setters
+}
+
+seguida, precisaríamos criar a classe ProdutoDao, que fornece operações de persistência para a classe de domínio Produto:
+
+public class ProdutoDao {
+
+    private final EntityManager entityManager;
+
+    public ProdutoDao(EntityManager entityManager) {
+        this.entityManager = entityManager;
+    }
+    
+    public void create(Produto produto) {
+        entityManager.persist(produto);
+    }
+
+    public Produto read(Long id) {
+        return entityManager.find(Produto.class, id);
+    }
+
+    public void update(Produto produto) {
+        entityManager.merge(produto);
+    }
+
+    public void remove(Produto produto) {
+        entityManager.remove(produto);
+   }
+
+}
