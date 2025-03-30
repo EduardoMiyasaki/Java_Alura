@@ -1,1 +1,134 @@
 Estudo Alura Sozinho - Spring Boot 3 - Aplique boas práticas e proteja uma API Rest
+
+O que iremos aprender:
+Boas práticas na API
+Tratamento de Erros
+Autenticação/Autorização
+
+Quando for retornar o código 201 tem que devolver também o cabeçalho do protocolo HTTP
+(location)
+
+No parâmetro do método terá uma nova classe UriComponentsBuilder uriBulder
+que será responsável por criar o inicio da url(ex: http/localhost:8080)
+
+public ResponseEntity saveDoctor(@RequestBody @Valid DadosCadastroMedico dados, UriComponentsBuilder uriBulder) {
+
+var uri = uriBulder.path("/medicos/{id}").buildAndExpand(medico.getId()).toUri();
+
+Cria a URL para acessar o novo Médico(ex: http://localhost:8080/medicos/15)
+
+assim quando você criar um médico já terá como acessar ele pelo cabeçalho
+
+dados do cabeçalho
+Location	http://localhost:8080/medicos/15
+Content-Type	application/json
+Transfer-Encoding	chunked
+Date	Tue, 25 Mar 2025 14:25:15 GMT
+
+e o retorno fica da seguinte forma
+
+return ResponseEntity.created(uri).body(new DadosDetalhamentoMedico(medico));
+
+é bom criar um novo DTO para retornar os dados que foram alterados
+
+Quando tiver um erro na sua API normalmente ele retorna o mesmo texto que você recebe no Intellij e isso é ruim, pois, existem Classes, métodos, dados sensíveis que podem ser expostos 
+então é bom ativar no application.propeties
+
+server.error.include-stacktrace=never
+
+assim quando houver erro 500
+ele envia o caminho que o usuário acessou porém
+não dá o log completo de erro para o cliente
+
+Por padrão as exceções que não são tratadas retornam código 500
+
+Uma alternativa para tratar exceções seria utilizando try catch
+porém ficaria muito código duplicado
+
+Então uma ideia é criar uma classe para tratar dos erros
+e utilizar a anotação do Spring RestControllerAdvice
+para avisar que na classe serão tratados os erros
+
+e criamos um método 
+com a anotação ExceptionHandler(onde iremos declarar o tipo de excessão que ira vir)
+
+@ExceptionHandler(EntityNotFoundException.class)
+    public ResponseEntity tratarErro404() {
+        return ResponseEntity.status(404).build();
+    }
+
+ public DadosDetalhamentoMedico getOneDoctor(Long id) {
+        Medico medico = medicoRepository.getReferenceById(id);
+        return new DadosDetalhamentoMedico(medico);
+    }
+
+ @GetMapping("/{id}")
+    public ResponseEntity<DadosDetalhamentoMedico> getOneDoctor(@PathVariable Long id) {
+        return ResponseEntity.ok(medicoService.getOneDoctor(id));
+    }
+
+dessa maneira o código fica bem mais limpo e ainda assim retorna os erros corretamente
+
+ERRO 400
+Servidor não conseguiu processar uma requisição por erro de validação nos dados enviados pelo cliente
+
+@ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<Void> tratarErro400(){
+        return ResponseEntity.badRequest().build();
+    }
+
+porém o código do erro ficaria correto 400 
+mas sem corpo nenhum, dificultando para o usuário, pois ele não vai saber onde está errado]
+
+@ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<List<DadosErrosValidacao>> tratarErro400(MethodArgumentNotValidException e) {
+
+        var erros = e.getFieldErrors();
+        return ResponseEntity.badRequest().body(erros.stream().map(DadosErrosValidacao::new).toList());
+    }
+
+    public record DadosErrosValidacao(String campo, String mensagem) {
+
+        public DadosErrosValidacao(FieldError fieldError) {
+            this(fieldError.getField(), fieldError.getDefaultMessage());
+        }
+        
+    }
+
+dessa forma o usuário iria saber o campo que está errado e porque
+
+para personalizar a mensagem de erro do Bean Validation é so ir no atributo e passar message = "Mensagem personalizada"
+ @NotBlank(message = "Email é obrigatório")
+    @Email(message = "Formato do email é inválido")
+    String email
+
+Outra maneira é isolar as mensagens em um arquivo de propriedades, que deve possuir o nome ValidationMessages.properties e ser criado no diretório src/main/resources:
+nome.obrigatorio=Nome é obrigatório
+email.obrigatorio=Email é obrigatório
+email.invalido=Formato do email é inválido
+telefone.obrigatorio=Telefone é obrigatório
+
+ @NotBlank(message = "{nome.obrigatorio}")
+    String nome
+
+
+										Spring Secutiry
+
+
+Objetivos:
+
+Autenticação, Como eles fazem login
+Autorização (Controle de acessos)
+Proteção Contra ataques
+
+
+Observação:
+Em uma API Rest após fazer um autenticação, a API não guarda seu estado ou seja, não lembra que você já fez login,
+Diferente de uma API WEB que guarda os status
+
+Em uma API Rest, o conceito é que ela seja stateless, ou seja, cada requisição é independente e o servidor não armazena informações sobre o estado da sessão do usuário. Isso significa que, após a autenticação, a API não "lembra" que o usuário já fez login. Em vez disso, o cliente deve enviar um token (como o JWT) em cada requisição subsequente para provar que está autenticado.
+
+Por outro lado, em uma aplicação Web tradicional, o servidor mantém o estado da sessão do usuário, armazenando informações sobre quem está logado e permitindo que o usuário navegue pela aplicação sem precisar se autenticar novamente a cada requisição.
+
+No curso iremos fazer uma API Rest que se autentica através de tokens da biblioteca JWT 
+https://www.alura.com.br/artigos/tipos-de-autenticacao

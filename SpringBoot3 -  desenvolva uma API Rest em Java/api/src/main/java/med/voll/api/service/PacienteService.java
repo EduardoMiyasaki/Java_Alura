@@ -36,11 +36,11 @@ public class PacienteService {
 
     public DadosUpdatePacient updatePaciente(Long id, DadosUpdatePacient dados) {
         Paciente paciente = pacienteRepository.findById(id)
-                .orElseThrow(() -> new ValidacaoException("Paciente não encontrado"));
+                .orElseThrow(() -> new ValidacaoException("Paciente if (dados.nome() != null) paciente.setNome(dados.nome());\n" +
+                        "        if (dados.email() != null) paciente.setEmail(dados.email());\n" +
+                        "        if (dados.telefone() != null) paciente.setTelefone(dados.telefone());não encontrado"));
 
-        if (dados.nome() != null) paciente.setNome(dados.nome());
-        if (dados.email() != null) paciente.setEmail(dados.email());
-        if (dados.telefone() != null) paciente.setTelefone(dados.telefone());
+
         return dados;
     }
 
