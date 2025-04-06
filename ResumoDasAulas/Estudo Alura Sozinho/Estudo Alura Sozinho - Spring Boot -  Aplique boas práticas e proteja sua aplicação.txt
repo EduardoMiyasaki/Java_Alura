@@ -132,3 +132,100 @@ Por outro lado, em uma aplicação Web tradicional, o servidor mantém o estado 
 
 No curso iremos fazer uma API Rest que se autentica através de tokens da biblioteca JWT 
 https://www.alura.com.br/artigos/tipos-de-autenticacao
+
+Senhas são informações sensíveis e não devem ser armazenadas em texto aberto, pois se uma pessoa mal intencionada conseguir obter acesso ao banco de dados, ela conseguirá ter acesso às senhas de todos os usuários. Para evitar esse problema, você deve sempre utilizar algum algoritmo de hashing nas senhas antes de armazená-las no banco de dados.
+
+ashing nada mais é do que uma função matemática que converte um texto em outro texto totalmente diferente e de difícil dedução. Por exemplo, o texto Meu nome é Rodrigo pode ser convertido para o texto 8132f7cb860e9ce4c1d9062d2a5d1848, utilizando o algoritmo de hashing MD5.
+
+
+@Service = avisar para o spring carregar a classe que irá fazer serviços
+
+Na servise de autenticação temos que avisar ao spring 
+que aquela classe será de autenticação por isso implemento a interface userDetailsService
+
+Como criar Consultas JPA:
+https://docs.spring.io/spring-data/jpa/reference/jpa/query-methods.html
+
+vamos criar uma classe de configuração de segurança
+Com essa classe, você pode definir como o Spring Security deve se comportar em relação à autenticação e autorização.
+
+ para o spring saber o que é essa classe utilizamos a anotação @Configuration
+para o spring saber que iremos personalizar o processo de autenticação e autorização utilizamos a anotação @EnableWebSecurity
+
+Primeiramente iremos trocar o processo de autenticação de Statefull para Stateless
+ou seja não iremos mais armazenar dados, 
+A aplicação web irá armazenar o token que iremos enviar e toda vez q for fazer uma requisição para o back-end terá que passar esse token
+
+
+SecurityFilterChain = objeto do Spring utilizado para configurar o processo de autenticação e de autorização
+.csrf().disable().build() =  para desabilitar a proteção contra ataques do tipo Cross-site Request forgery
+Desabilitando pois como iremos trabalhar com autenticação via tokens o próprio token já faz a proteção contra esse ataque
+
+Configurando a autenticação para ser Stateless 
+sessionManagement() = mostrando como será o gerenciamento de sessão
+sessionCreationPolicy = qual a politica de criação de sessão
+
+@Bean
+public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    return http.csrf().disable()
+            .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+            .and().build();
+    }
+
+return http.csrf().disable() = desabilitando a proteção contra ataques CROS
+
+SessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+            .and().build(); = declarando um novo método de autenticação
+
+@Bean = expor o retorno desse método para o spring ou outra classe
+
+Com essa configuração o Spring Security não tem mais aquele comportamento padrão.
+
+Agora, configuramos para o processo de autenticação ser stateless. Não será mais gerado o formulário de login e senha, quem faz isso é a nossa aplicação mobile, no front-end. E, também, não bloqueará mais a URL.
+Nós precisamos configurar como será o processo de autenticação e autorização.
+
+A partir da versão 3.1 do Spring ficou assim
+
+@Bean
+public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    return http.csrf(csrf -> csrf.disable()).
+    sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+.build();
+    }
+
+Nós não podemos chamar a AutenticacaoService diretamente
+nós iremos na controller instanciar uma classe do Spring chamada
+AuthenticationManager e ela irá chamar a autenticacaoService
+
+A classe AuthenticationManager é do spring, porém ele não sabe injetar os dados automaticamente 
+por isso precisamos configurar na classe SecutiryConfiguration
+
+ @Bean
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) {
+     return configuration.getAuthenticationManager();
+    }
+
+"Ensinando" para o spring como queremos o AuthenticationManager
+
+o @Bean serve para ensinar o spring como criar o objeto que eu vou injetar, ou ele mesmo irá usar internamente
+resumidamente nós configuramos a classe para que o Spring carregue com nossas informações 
+
+
+Exatamente! A anotação @Bean é utilizada para informar ao Spring que o método que a contém deve ser chamado para criar um objeto que será gerenciado pelo contêiner de injeção de dependência do Spring.
+
+Quando você anota um método com @Bean, está dizendo ao Spring que ele deve executar esse método para obter uma instância do objeto que você deseja injetar em outras partes da sua aplicação. Assim, você está configurando como o Spring deve criar e gerenciar esse objeto, permitindo que ele seja utilizado em outras classes, como no seu caso, na AutenticacaoController.
+
+Portanto, ao usar @Bean, você está fornecendo ao Spring as informações necessárias para que ele possa instanciar e configurar o objeto corretamente, permitindo que você o utilize em sua aplicação. Se precisar de mais esclarecimentos, estou aqui para ajudar!
+
+Então sempre quando coloco @Bean o metódo tem que ter um retorno do tipo do objeto que eu quero que o spring Instancie?
+
+Sim, exatamente! Quando você utiliza a anotação @Bean, o método deve retornar uma instância do tipo do objeto que você deseja que o Spring gerencie. O tipo de retorno do método deve ser o mesmo tipo do bean que você quer criar.
+
+Configurando que as senha estão sendo guardadas em Hash de BCrypt
+@Bean
+    public PasswordEncoder passwordEncoder(){
+        return new BCryptPasswordEncoder();
+    }
+
+para o Spring security saber que a classe Usuário é uma classe de autenticação
+temos que implementar a interface chamada UserDetails

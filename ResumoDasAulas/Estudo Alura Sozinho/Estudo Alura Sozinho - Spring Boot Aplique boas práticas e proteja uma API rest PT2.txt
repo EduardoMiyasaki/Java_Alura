@@ -1,0 +1,213 @@
+Estudo Alura Sozinho - Spring Boot 3 - Aplique boas práticas e proteja uma API Rest PT2
+
+https://www.alura.com.br/artigos/o-que-e-json-web-tokens
+
+Assinatura do token
+Algorithm algorithm = Algorithm.RSA256(rsaPublicKey, rsaPrivateKey);
+
+ public String gerarToken(Usuario usuario) {
+        try {
+            Algorithm algorithm = Algorithm.HMAC256("123"); // assinatura do token 
+            return JWT.create()
+                    .withIssuer("API Voll.med") // Quem está gerando o token 
+                    .withSubject(usuario.getLogin()) // Passando o usuário que irá gerar o token
+		    .withExpiresAt(dataExpiracao()) // Passando uma data de expiração para o token para evitar Hackers
+                    .sign(algorithm); // passando a assinatura criada acima
+        } catch (JWTCreationException exception){
+           throw new RuntimeException("Erro ao gerar token JWT", exception);
+        }
+    }
+
+para armazenar que o token pertence ao usuário X precisamos
+passar withSubject(usuario.getLogin())
+
+é recomendado que os tokens tenha uma data de expiração
+
+private Instant dataExpiracao(){
+return LocalDateTime.now().plusHours(2).toInstant(ZoneOffset.of("-03:00"))
+}
+
+Utilizando uma varíavel de ambiente só que se não achar vai utilizar a fixa
+api.security.token.secret=${JWT_SECRET:12345678}
+
+na classe Java para pegar o valor do application Properties basta utilizar a anotação @Value
+
+ @Value("${api.security.token.secret}")
+    private String secret;
+
+O método withClaim recebe dois parâmetros, sendo o primeiro uma String que identifica o nome do claim (propriedade armazenada no token), e o segundo a informação que se deseja armazenar.
+
+
+precisamos criar uma classe que ira validar o token antes de cair na controller
+
+existe um conceito chamado filters que antes da cair ir para o spring você valida os dados enviados
+
+no Spring todas as requisições que vão para o Spring passa na classe DispatcherServlet
+e ela que descobre qual controller chamar
+
+a requisição antes de ir para o controller passa pela Handler interceptors
+que é uma espécie de filtro 
+
+filters -> DispatcherServlet -> Handler Interceptors -> Controller
+
+Filter é um dos recursos que fazem parte da especificação de Servlets, a qual padroniza o tratamento de requisições e respostas em aplicações Web no Java. Ou seja, tal recurso não é específico do Spring, podendo assim ser utilizado em qualquer aplicação Java.
+
+É um recurso muito útil para isolar códigos de infraestrutura da aplicação, como, por exemplo, segurança, logs e auditoria, para que tais códigos não sejam duplicados e misturados aos códigos relacionados às regras de negócio da aplicação.
+
+Para criar um Filter, basta criar uma classe e implementar nela a interface Filter (pacote jakarta.servlet). Por exemplo:
+
+@WebFilter(urlPatterns = "/api/**")
+public class LogFilter implements Filter {
+
+    @Override
+    public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) throws IOException, ServletException {
+        System.out.println("Requisição recebida em: " + LocalDateTime.now());
+        filterChain.doFilter(servletRequest, servletResponse);
+    }
+
+}
+O método doFilter é chamado pelo servidor automaticamente, sempre que esse filter tiver que ser executado, e a chamada ao método filterChain.doFilter indica que os próximos filters, caso existam outros, podem ser executados. A anotação @WebFilter, adicionada na classe, indica ao servidor em quais requisições esse filter deve ser chamado, baseando-se na URL da requisição.
+
+No curso, utilizaremos outra maneira de implementar um filter, usando recursos do Spring que facilitam sua implementação.
+
+na criação da classe de filtro utilizamos a anotação @Component
+o Spring carrega uma classe genérica, não é service, controller
+
+se fossemos utilizar uma classe filter em que o spring não faria participação implementaríamos a interface Filter
+
+porem como queremos o spring para poder injetar dependências estenderemos da classe OncePerRequestFilter
+
+Sempre que uma requisição vier ele vai passar por essa classe
+
+FilterChain representa a cadeia de filtros na aplicação
+dentro do método passamos filterChain.doFilter() para seguir o fluxo de filtros
+
+  @Override
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+
+ 	// recuperando o token
+        var tokenJWT = recuperarToken(request);
+
+ 	// validando o token
+	// passando o filtro para a próxima camada
+        filterChain.doFilter(request, response);
+    };
+
+o envio do Token é pelo cabeçalho HTTP
+ele vai em um cabeçalho especifico chamado Authorization
+
+  private String recuperarToken(HttpServletRequest request) {
+        var authorizationHeader = request.getHeader("Authorization");
+
+        if (authorizationHeader == null) {
+            throw new RuntimeException("Token não enviado no cabeçalho Authorization");
+        }
+        return authorizationHeader.replace("Bearer ", "");
+    }
+
+por padrão o tipo de prefixo utilizado em Bearer é utilizado para token JWT
+
+pegando o usuário de acordo com o token
+
+
+    public String getSubject(String tokenJWT) {
+        try {
+            Algorithm algorithm = Algorithm.HMAC256(secret);
+
+            return JWT.require(algorithm)
+                    .withIssuer("API Voll.med")
+                    .build()
+                    .verify(tokenJWT)
+                    .getSubject();
+        } catch (JWTVerificationException e) {
+            throw new RuntimeException("Token inválido ou expirado");
+        }
+    }
+
+mudando o controlle de acesso dos metódos da API
+
+ @Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        return http
+                .csrf(csrf -> csrf.disable())
+                .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(HttpMethod.POST, "/login").permitAll() // avisando para o spring que essa requisição qualquer pessoa pode fazer
+                        .anyRequest().authenticated()) // qualquer outra requisição tem que estar autenticado	
+                .build();
+    }
+
+porem como não configuramos para o spring qualquer requisição diferente da url /login 
+ele considera que o usuário não está autenticado e barra a requisição mesmo enviando o token
+por conta disso temos que mudar 
+
+ @Override
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+
+        // recuperando o token
+        var tokenJWT = recuperarToken(request);
+        // recuperando o login
+        if(tokenJWT != null) {
+            var subject = tokenService.getSubject(tokenJWT);
+            var usuario = usuarioRepository.findByLogin(subject);
+
+            var authentication = new UsernamePasswordAuthenticationToken(usuario, null, usuario.getAuthorities());
+
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+        }
+
+        // passando o filtro para a próxima camada
+        filterChain.doFilter(request, response);
+    }
+
+a partir do momento que fizemos essa configuração o filtro do spring começa a ser chamado também
+.requestMatchers(HttpMethod.POST, "/login").permitAll() // avisando para o spring que essa requisição qualquer pessoa pode fazer
+                        .anyRequest().authenticated()) // qualquer outra requisição tem que estar autenticado
+
+e a ordem de execução dos filtros é 1° o filtro do Spring dps o nosso
+por conta disso precisamos configurar a ordem
+
+ return http.csrf(csrf -> csrf.disable()).sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS)).authorizeHttpRequests(auth -> auth
+                        .requestMatchers(HttpMethod.POST, "/login").permitAll().anyRequest().authenticated())
+                .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class)
+                .build();
+
+
+Na aplicação utilizada no curso não teremos perfis de acessos distintos para os usuários. Entretanto, esse recurso é utilizado em algumas aplicações e podemos indicar ao Spring Security que determinadas URLs somente podem ser acessadas por usuários que possuem um perfil específico.
+
+Por exemplo, suponha que em nossa aplicação tenhamos um perfil de acesso chamado de ADMIN, sendo que somente usuários com esse perfil possam excluir médicos e pacientes. Podemos indicar ao Spring Security tal configuração alterando o método securityFilterChain, na classe SecurityConfigurations, da seguinte maneira:
+
+@Bean
+public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    return http.csrf().disable()
+        .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+        .and().authorizeHttpRequests()
+        .requestMatchers(HttpMethod.POST, "/login").permitAll()
+        .requestMatchers(HttpMethod.DELETE, "/medicos").hasRole("ADMIN")
+        .requestMatchers(HttpMethod.DELETE, "/pacientes").hasRole("ADMIN")
+        .anyRequest().authenticated()
+        .and().addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class)
+        .build();
+}
+Outra maneira de restringir o acesso a determinadas funcionalidades, com base no perfil dos usuários, é com a utilização de um recurso do Spring Security conhecido como Method Security, que funciona com a utilização de anotações em métodos:
+
+GetMapping("/{id}")
+@Secured("ROLE_ADMIN")
+public ResponseEntity detalhar(@PathVariable Long id) {
+    var medico = repository.getReferenceById(id);
+    return ResponseEntity.ok(new DadosDetalhamentoMedico(medico));
+}
+
+Atenção! Por padrão esse recurso vem desabilitado no spring Security, sendo que para o utilizar devemos adicionar a seguinte anotação na classe Securityconfigurations do projeto:
+
+@EnableMethodSecurity(securedEnabled = true)
+
+
+@RestControllerAdvice
+serve para caso der um erro o spring vai para essa classe verifica se nós temos algo relacionado ao erro e se tiver
+ele irá fazer o que nós pedimos no método
+ @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity tratarErro400(MethodArgumentNotValidException ex) {
+        var erros = ex.getFieldErrors();
+        return ResponseEntity.badRequest().body(erros.stream().map(DadosErroValidacao::new).toList());
+    }
